@@ -1,0 +1,22 @@
+[configuration]
+
+entry_symbol = "gd_chess_library_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[icons]
+
+ChessEngine = "res://addons/gd_chess_cpp/icons/ChessEngine.png"
+
+[libraries]
+
+windows.debug.x86_64 = "res://addons/gd_chess_cpp/bin/libgd_chess.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/gd_chess_cpp/bin/libgd_chess.windows.template_debug.x86_64.dll"
+
+linux.debug.x86_64 = "addons/gd_chess_cpp/bin/libgd_chess.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "addons/gd_chess_cpp/bin/libgd_chess.linux.template_debug.x86_64.so"
+
+web.debug.threads.wasm32 = "res://bin/libgdexample.web.template_debug.wasm32.wasm"
+web.release.threads.wasm32 = "res://bin/libgdexample.web.template_release.wasm32.wasm"
+web.debug.wasm32 = "res://bin/libgdexample.web.template_debug.wasm32.nothreads.wasm"
+web.release.wasm32 = "res://bin/libgdexample.web.template_release.wasm32.nothreads.wasm"

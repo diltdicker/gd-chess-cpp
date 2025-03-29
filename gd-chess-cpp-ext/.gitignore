@@ -1,0 +1,5 @@
+# User defined ignore rules
+
+.sconsign.dblite
+
+src/*.os

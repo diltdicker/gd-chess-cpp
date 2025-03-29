@@ -1,0 +1,4 @@
+[submodule "gd-chess-cpp-ext/godot-cpp"]
+	path = gd-chess-cpp-ext/godot-cpp
+	url = https://github.com/godotengine/godot-cpp
+	branch = 4.4

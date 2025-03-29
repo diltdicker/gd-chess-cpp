@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/gd-chess-cpp-ext/godot-cpp/gdextension",
+                "${workspaceFolder}/gd-chess-cpp-ext/godot-cpp/include",
+                "${workspaceFolder}/gd-chess-cpp-ext/godot-cpp/gen/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,4 @@
+
+# remove this file upon release
+*.so
+*.dll

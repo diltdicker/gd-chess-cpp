@@ -195,9 +195,44 @@ int ChessLogic::evaluate_material() const {
 }
 
 int ChessLogic::evaluate_position() const {
-    // Placeholder logic for positional evaluation
-    // Replace with actual evaluation logic
-    return 0;
+    int positionScore = 0;
+    bool endgame = isEndgame();
+
+    for (int i = 0; i < 64; ++i) {
+        const auto &piece = internalBoard[i];
+        if (piece.type == 0) continue; // Skip empty squares
+
+        switch (piece.type) {
+            case 1: // Pawn
+                if (endgame) {
+                    positionScore += (piece.color == 1 ? WHT_PAWN_ENDGAME_TABLE[i] : -BLK_PWN_ENDGAME_TABLE[i]);
+                } else {
+                    positionScore += (piece.color == 1 ? WHT_PAWN_POS_TABLE[i] : -BLK_PWN_POS_TABLE[i]);
+                }
+                break;
+            case 2: // Knight
+                positionScore += (piece.color == 1 ? KNIGHT_POS_TABLE[i] : -KNIGHT_POS_TABLE[i]);
+                break;
+            case 3: // Bishop
+                positionScore += (piece.color == 1 ? BISHOP_POS_TABLE[i] : -BISHOP_POS_TABLE[i]);
+                break;
+            case 4: // Rook
+                positionScore += (piece.color == 1 ? ROOK_POS_TABLE[i] : -ROOK_POS_TABLE[i]);
+                break;
+            case 5: // Queen
+                positionScore += (piece.color == 1 ? QUEEN_POS_TABLE[i] : -QUEEN_POS_TABLE[i]);
+                break;
+            case 6: // King
+                if (endgame) {
+                    positionScore += (piece.color == 1 ? KING_ENDGAME_TABLE[i] : -KING_ENDGAME_TABLE[i]);
+                } else {
+                    positionScore += (piece.color == 1 ? WHT_KING_POS_TABLE[i] : -BLK_KING_POS_TABLE[i]);
+                }
+                break;
+        }
+    }
+
+    return positionScore;
 }
 
 u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
@@ -218,6 +253,29 @@ u_int64_t ChessLogic::getPieceBitBoard(short color) const {
         }
     }
     return bitboard;
+}
+
+u_short ChessLogic::getMinorPieceCnt(short color) const {
+    u_int64_t knights = getPieceBitBoard(color, 2); // Knights
+    u_int64_t bishops = getPieceBitBoard(color, 3); // Bishops
+    return __builtin_popcountll(knights) + __builtin_popcountll(bishops);
+}
+
+u_short ChessLogic::getMajorPieceCnt(short color) const {
+    u_int64_t rooks = getPieceBitBoard(color, 4);  // Rooks
+    u_int64_t queens = getPieceBitBoard(color, 5); // Queens
+    return __builtin_popcountll(rooks) + __builtin_popcountll(queens);
+}
+
+bool ChessLogic::isEndgame() const {
+    // Count major and minor pieces for both sides
+    u_short whiteMajor = getMajorPieceCnt(1);
+    u_short blackMajor = getMajorPieceCnt(2);
+    u_short whiteMinor = getMinorPieceCnt(1);
+    u_short blackMinor = getMinorPieceCnt(2);
+
+    // Endgame is typically defined as having no major pieces or very few minor pieces
+    return (whiteMajor + blackMajor <= 1) && (whiteMinor + blackMinor <= 3);
 }
 
 ChessLogic::ChessLogic() {
@@ -483,6 +541,3 @@ bool ChessLogic::isInCheck(short color) const {
 
     return false; // No attacks found, king is not in check
 }
-
-
-

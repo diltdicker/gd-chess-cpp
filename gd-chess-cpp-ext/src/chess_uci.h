@@ -14,25 +14,13 @@
 #define CHESS_UCI_H
 
 #include <string>
+#include "chess_logic.h"
 
 class ChessUCI {
 
 public:
 
-    struct chessPiece
-    {
-        short color; // 1 = white, 2 = black
-        short type; // 1 = pawn, 2 = knight, 3 = bishop, 4 = rook, 5 = queen, 6 = king  
-
-        // Overload the assignment operator
-        chessPiece& operator=(const chessPiece& other) {
-            if (this != &other) {
-                this->color = other.color;
-                this->type = other.type;
-            }
-            return *this;
-        }
-    };
+    
 
     // Constructor
     ChessUCI();
@@ -43,6 +31,8 @@ public:
     char * handleUciCommand(const char * command);
 
     void fenBoardUpdate(const char * fen);
+
+    
 
 protected:
 
@@ -57,7 +47,7 @@ protected:
     const short EMPTY_SQUARE = 0;
     const std::string DEFUATL_FEN = "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1";
 
-    chessPiece chessBoard[64];
+    ChessLogic::chessPiece chessBoard[64];
     bool isWhiteTurn = true;
     bool whiteQCastle = true;
     bool whiteKCastle = true;
@@ -68,6 +58,7 @@ protected:
     int fullMoveNumber = 1;
 
 private:
+
 
 
 };

@@ -1,5 +1,4 @@
 #include "chess_logic.h"
-#include "chess_uci.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -304,8 +303,8 @@ std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
                             move.promotion = promotionPiece;
 
                             // Temporarily make the move
-                            ChessUCI::chessPiece originalTo = internalBoard[move.to];
-                            ChessUCI::chessPiece originalFrom = internalBoard[move.from];
+                            chessPiece originalTo = internalBoard[move.to];
+                            chessPiece originalFrom = internalBoard[move.from];
                             internalBoard[move.to] = internalBoard[move.from];
                             internalBoard[move.to].type = promotionPiece; // Promote the pawn
                             internalBoard[move.from] = {0, 0};
@@ -321,8 +320,8 @@ std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
                         }
                     } else {
                         // Temporarily make the move
-                        ChessUCI::chessPiece originalTo = internalBoard[move.to];
-                        ChessUCI::chessPiece originalFrom = internalBoard[move.from];
+                        chessPiece originalTo = internalBoard[move.to];
+                        chessPiece originalFrom = internalBoard[move.from];
                         internalBoard[move.to] = internalBoard[move.from];
                         internalBoard[move.from] = {0, 0};
 
@@ -347,7 +346,7 @@ int ChessLogic::evaluate_board_position() const {
     return evaluate_material() + evaluate_position();
 }
 
-void ChessLogic::copyChessBoard(const ChessUCI::chessPiece inputBoard[64]) {
+void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
     for (int i = 0; i < 64; ++i) {
         internalBoard[i] = inputBoard[i];
     }
@@ -464,7 +463,31 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
     return move;
 }
 
-const ChessUCI::chessPiece* ChessLogic::getChessBoard() const {
+std::string ChessLogic::translateMoveToString(const Move &move) const {
+    std::string moveStr;
+
+    // Convert the 'from' square to algebraic notation
+    moveStr += static_cast<char>('a' + (move.from % 8)); // File
+    moveStr += static_cast<char>('1' + (move.from / 8)); // Rank
+
+    // Convert the 'to' square to algebraic notation
+    moveStr += static_cast<char>('a' + (move.to % 8)); // File
+    moveStr += static_cast<char>('1' + (move.to / 8)); // Rank
+
+    // Add promotion piece if applicable
+    if (move.promotion != 0) {
+        switch (move.promotion) {
+            case 2: moveStr += 'n'; break; // Knight
+            case 3: moveStr += 'b'; break; // Bishop
+            case 4: moveStr += 'r'; break; // Rook
+            case 5: moveStr += 'q'; break; // Queen
+        }
+    }
+
+    return moveStr;
+}
+
+const ChessLogic::chessPiece* ChessLogic::getChessBoard() const {
     return internalBoard;
 }
 

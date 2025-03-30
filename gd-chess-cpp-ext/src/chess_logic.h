@@ -4,11 +4,26 @@
 #include <vector>
 #include <string>
 #include <stack>
-#include "chess_uci.h"
 #include <limits>
 
 class ChessLogic {
 public:
+
+struct chessPiece
+{
+    short color; // 1 = white, 2 = black
+    short type; // 1 = pawn, 2 = knight, 3 = bishop, 4 = rook, 5 = queen, 6 = king  
+
+    // Overload the assignment operator
+    chessPiece& operator=(const chessPiece& other) {
+        if (this != &other) {
+            this->color = other.color;
+            this->type = other.type;
+        }
+        return *this;
+    }
+};
+
     // Represents a move in chess (e.g., "e2e4")
     struct Move {
         short from; // Starting square (0-63)
@@ -33,10 +48,10 @@ public:
     // Returns a score where positive values favor white and negative values favor black
     int evaluate_board_position() const;
 
-    void copyChessBoard(const ChessUCI::chessPiece inputBoard[64]);
+    void copyChessBoard(const chessPiece inputBoard[64]);
 
     // Get the current chessboard
-    const ChessUCI::chessPiece* getChessBoard() const;
+    const chessPiece* getChessBoard() const;
 
     // Make a move on the board
     void make_move(const Move &move);
@@ -51,6 +66,8 @@ public:
     Move translateMove(short fromSquare, short toSquare) const;
 
     Move translateMove(const std::string &moveStr) const;
+
+    std::string translateMoveToString(const Move &move) const;
 
     short getSqureTopLeft(short square) const;
     short getSqureTopRight(short square) const;
@@ -93,7 +110,7 @@ protected:
         KING_VALUE
     };
 
-    ChessUCI::chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
+    chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
 
     std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
 

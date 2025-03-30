@@ -18,6 +18,12 @@ Install scons for building
 sudo apt-get install scons
 ```
 
+Pull submodule godot-cpp
+
+```shell
+git submodule update --recursive
+```
+
 ### Windows builds
 
 Install MinGW for windows platforms

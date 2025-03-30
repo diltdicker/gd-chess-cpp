@@ -41,6 +41,8 @@ public:
     // Make a move on the board
     void make_move(const Move &move);
 
+    void emtpyMoveStack();
+
     bool isInCheck(short color) const;
 
     // Undo the last move
@@ -184,14 +186,14 @@ protected:
     };
 
     const u_short BISHOP_POS_TABLE[64] = {
-        40, 30, 20, 10, 10, 20, 30, 40, // First row
-        30, 20, 15, 10, 10, 15, 20, 30, // Second row
-        20, 15, 10,  5,  5, 10, 15, 20, // Third row
-        10, 10,  5,  0,  0,  5, 10, 10, // Fourth row
-        10, 10,  5,  0,  0,  5, 10, 10, // Fifth row
-        20, 15, 10,  5,  5, 10, 15, 20, // Sixth row
-        30, 20, 15, 10, 10, 15, 20, 30, // Seventh row
-        40, 30, 20, 10, 10, 20, 30, 40  // Eighth row
+        50, 40, 30, 20, 20, 30, 40, 50, // First row
+        40, 30, 25, 20, 20, 25, 30, 40, // Second row
+        30, 25, 20, 15, 15, 20, 25, 30, // Third row
+        20, 20, 15, 10, 10, 15, 20, 20, // Fourth row
+        20, 20, 15, 10, 10, 15, 20, 20, // Fifth row
+        30, 25, 20, 15, 15, 20, 25, 30, // Sixth row
+        40, 30, 25, 20, 20, 25, 30, 40, // Seventh row
+        50, 40, 30, 20, 20, 30, 40, 50  // Eighth row
     };
 
     const u_short ROOK_POS_TABLE[64] = {

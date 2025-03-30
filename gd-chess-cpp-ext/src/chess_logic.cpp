@@ -404,6 +404,12 @@ void ChessLogic::undo_move() {
     }
 }
 
+void ChessLogic::emtpyMoveStack() {
+    while (!moveStack.empty()) {
+        moveStack.pop();
+    }
+}
+
 ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) const {
     Move move;
     move.from = fromSquare;

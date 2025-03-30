@@ -10,9 +10,11 @@ namespace godot {
 
         private:
             // Add private members here
+            
 
         protected:
             static void _bind_methods();
+            int numCalls = 0;
 
         public: 
 

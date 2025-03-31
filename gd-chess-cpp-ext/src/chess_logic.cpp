@@ -225,11 +225,20 @@ ChessLogic::~ChessLogic() {
 std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
     std::vector<Move> legalMoves;
     short color = isWhite ? 1 : 2;
+    short opponentColor = isWhite ? 2 : 1;
 
-    for (short i = 0; i < 64; ++i) {
+    u_int64_t colorBitboard = getPieceBitBoard(color);
+    std::vector<short> fromSquares = bitboardToSquares(colorBitboard); // own squares
+    std::vector<short> toSquares = bitboardToSquares(
+        getPawnMoveBitBoard(color) | getKnightMoveBitBoard(color) | getBishopMoveBitBoard(color) |
+        getRookMoveBitBoard(color) | getQueenMoveBitBoard(color) | getKingMoveBitBoard(color)
+    ); 
+    
+
+    for (short i = 0; i < fromSquares.size() ; ++i) {
         if (internalBoard[i].color == color) {
-            for (short j = 0; j < 64; ++j) {
-                Move move = translateMove(i, j);
+            for (short j = 0; j < toSquares.size(); ++j) {
+                Move move = translateMove(fromSquares.at(i), toSquares.at(j));
                 if (isMoveLegal(move)) {
                     legalMoves.push_back(move);
                 }
@@ -587,4 +596,168 @@ bool ChessLogic::isInCheck(short color) const {
     }
 
     return false; // No attacks found, king is not in check
+}
+
+std::vector<short> ChessLogic::bitboardToSquares(u_int64_t bitboard) const {
+    std::vector<short> squares;
+    for (short i = 0; i < 64; ++i) {
+        if (bitboard & (1ULL << i)) {
+            squares.push_back(i);
+        }
+    }
+    return squares;
+}
+
+u_int64_t ChessLogic::getPawnMoveBitBoard(short color) const {
+    u_int64_t pawnBitboard = getPieceBitBoard(color, 1); // Get bitboard for pawns
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    u_int64_t singlePush = 0;
+    u_int64_t doublePush = 0;
+    u_int64_t capturesLeft = 0;
+    u_int64_t capturesRight = 0;
+
+    if (color == 1) { // White pawns
+        singlePush = (pawnBitboard << 8) & emptySquares; // Move one square forward
+        doublePush = ((singlePush & 0x0000000000FF0000) << 8) & emptySquares; // Move two squares forward from rank 2
+        capturesLeft = (pawnBitboard << 7) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard << 9) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
+    } else { // Black pawns
+        singlePush = (pawnBitboard >> 8) & emptySquares; // Move one square forward
+        doublePush = ((singlePush & 0x0000FF0000000000) >> 8) & emptySquares; // Move two squares forward from rank 7
+        capturesLeft = (pawnBitboard >> 9) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard >> 7) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
+    }
+
+    // Combine all possible moves
+    return singlePush | doublePush | capturesLeft | capturesRight;
+}
+
+u_int64_t ChessLogic::getKnightMoveBitBoard(short color) const {
+    u_int64_t knightBitboard = getPieceBitBoard(color, 2); // Get bitboard for knights
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    u_int64_t knightMoves = 0;
+    const short knightOffsets[8] = {-17, -15, -10, -6, 6, 10, 15, 17};
+
+    for (short i = 0; i < 64; ++i) {
+        if (knightBitboard & (1ULL << i)) {
+            for (short j = 0; j < 8; ++j) {
+                short targetSquare = i + knightOffsets[j];
+                if (targetSquare >= 0 && targetSquare < 64) {
+                    if ((knightOffsets[j] == -17 && (i % 8 != 7)) || 
+                        (knightOffsets[j] == -15 && (i % 8 != 0)) || 
+                        (knightOffsets[j] == -10 && (i % 8 != 6)) || 
+                        (knightOffsets[j] == -6 && (i % 8 != 1)) || 
+                        (knightOffsets[j] == 6 && (i % 8 != 7)) || 
+                        (knightOffsets[j] == 10 && (i % 8 != 0)) || 
+                        (knightOffsets[j] == 15 && (i % 8 != 6)) || 
+                        (knightOffsets[j] == 17 && (i % 8 != 1))) {
+                        continue; // Skip invalid moves
+                    }
+                    knightMoves |= (1ULL << targetSquare);
+                }
+            }
+        }
+    }
+
+    return knightMoves & emptySquares | opponentBitboard;
+}
+u_int64_t ChessLogic::getBishopMoveBitBoard(short color) const {
+    u_int64_t bishopBitboard = getPieceBitBoard(color, 3); // Get bitboard for bishops
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    u_int64_t bishopMoves = 0;
+    const short bishopOffsets[4][2] = {{-9, -7}, {7, -9}, {9, 7}, {-7, 9}};
+
+    for (short i = 0; i < 64; ++i) {
+        if (bishopBitboard & (1ULL << i)) {
+            for (short j = 0; j < 4; ++j) {
+                short targetSquare = i;
+                while ((targetSquare += bishopOffsets[j][0]) >= 0 && targetSquare < 64) {
+                    if ((bishopOffsets[j][0] == -9 && (i % 8 != 7)) || 
+                        (bishopOffsets[j][0] == -7 && (i % 8 != 0)) || 
+                        (bishopOffsets[j][0] == 7 && (i % 8 != 0)) || 
+                        (bishopOffsets[j][0] == 9 && (i % 8 != 7))) {
+                        break; // Skip invalid moves
+                    }
+                    bishopMoves |= (1ULL << targetSquare);
+                    if (internalBoard[targetSquare].type != 0) {
+                        break; // Stop at the first piece encountered
+                    }
+                }
+            }
+        }
+    }
+
+    return bishopMoves & emptySquares | opponentBitboard;
+}
+u_int64_t ChessLogic::getRookMoveBitBoard(short color) const {
+    u_int64_t rookBitboard = getPieceBitBoard(color, 4); // Get bitboard for rooks
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    u_int64_t rookMoves = 0;
+    const short rookOffsets[4][2] = {{-8, 0}, {8, 0}, {0, -1}, {0, 1}};
+
+    for (short i = 0; i < 64; ++i) {
+        if (rookBitboard & (1ULL << i)) {
+            for (short j = 0; j < 4; ++j) {
+                short targetSquare = i;
+                while ((targetSquare += rookOffsets[j][0]) >= 0 && targetSquare < 64) {
+                    if ((rookOffsets[j][0] == -8 && (i % 8 != 7)) || 
+                        (rookOffsets[j][0] == 8 && (i % 8 != 0)) || 
+                        (rookOffsets[j][0] == -1 && (i / 8 != 7)) || 
+                        (rookOffsets[j][0] == 1 && (i / 8 != 0))) {
+                        break; // Skip invalid moves
+                    }
+                    rookMoves |= (1ULL << targetSquare);
+                    if (internalBoard[targetSquare].type != 0) {
+                        break; // Stop at the first piece encountered
+                    }
+                }
+            }
+        }
+    }
+
+    return rookMoves & emptySquares | opponentBitboard;
+}
+
+u_int64_t ChessLogic::getQueenMoveBitBoard(short color) const {
+    u_int64_t queenBitboard = getPieceBitBoard(color, 5); // Get bitboard for queens
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    return (getBishopMoveBitBoard(color) | getRookMoveBitBoard(color)) & emptySquares | opponentBitboard;
+}
+
+u_int64_t ChessLogic::getKingMoveBitBoard(short color) const {
+    u_int64_t kingBitboard = getPieceBitBoard(color, 6); // Get bitboard for kings
+    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+
+    u_int64_t kingMoves = 0;
+    const short kingOffsets[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+
+    for (short i = 0; i < 64; ++i) {
+        if (kingBitboard & (1ULL << i)) {
+            for (short j = 0; j < 8; ++j) {
+                short targetSquare = i + kingOffsets[j][0] * 8 + kingOffsets[j][1];
+                if (targetSquare >= 0 && targetSquare < 64) {
+                    if ((kingOffsets[j][0] == -1 && (i % 8 != 7)) || 
+                        (kingOffsets[j][0] == 1 && (i % 8 != 0)) || 
+                        (kingOffsets[j][1] == -1 && (i / 8 != 7)) || 
+                        (kingOffsets[j][1] == 1 && (i / 8 != 0))) {
+                        continue; // Skip invalid moves
+                    }
+                    kingMoves |= (1ULL << targetSquare);
+                }
+            }
+        }
+    }
+
+    return kingMoves & emptySquares | opponentBitboard;
 }

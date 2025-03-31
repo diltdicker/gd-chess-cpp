@@ -92,7 +92,14 @@ struct chessPiece
 
     u_int64_t getPieceBitBoard(short color, short piece) const;
     u_int64_t getPieceBitBoard(short color) const;
+    u_int64_t getPawnMoveBitBoard(short color) const;
+    u_int64_t getKnightMoveBitBoard(short color) const;
+    u_int64_t getBishopMoveBitBoard(short color) const;
+    u_int64_t getRookMoveBitBoard(short color) const;
+    u_int64_t getQueenMoveBitBoard(short color) const;
+    u_int64_t getKingMoveBitBoard(short color) const;
 
+    std::vector<short> bitboardToSquares(u_int64_t bitboard) const;
 
 protected:
 

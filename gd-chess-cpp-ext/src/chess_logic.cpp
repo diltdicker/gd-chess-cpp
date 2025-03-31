@@ -200,29 +200,6 @@ u_int64_t ChessLogic::getPieceBitBoard(short color) const {
     return bitboard;
 }
 
-u_short ChessLogic::getMinorPieceCnt(short color) const {
-    u_int64_t knights = getPieceBitBoard(color, 2); // Knights
-    u_int64_t bishops = getPieceBitBoard(color, 3); // Bishops
-    return __builtin_popcountll(knights) + __builtin_popcountll(bishops);
-}
-
-u_short ChessLogic::getMajorPieceCnt(short color) const {
-    u_int64_t rooks = getPieceBitBoard(color, 4);  // Rooks
-    u_int64_t queens = getPieceBitBoard(color, 5); // Queens
-    return __builtin_popcountll(rooks) + __builtin_popcountll(queens);
-}
-
-bool ChessLogic::isEndgame() const {
-    // Count major and minor pieces for both sides
-    u_short whiteMajor = getMajorPieceCnt(1);
-    u_short blackMajor = getMajorPieceCnt(2);
-    u_short whiteMinor = getMinorPieceCnt(1);
-    u_short blackMinor = getMinorPieceCnt(2);
-
-    // Endgame is typically defined as having no major pieces or very few minor pieces
-    return (whiteMajor + blackMajor <= 1) && (whiteMinor + blackMinor <= 3);
-}
-
 ChessLogic::ChessLogic() {
     // Initialize the internal board with empty pieces
     for (int i = 0; i < 64; ++i) {

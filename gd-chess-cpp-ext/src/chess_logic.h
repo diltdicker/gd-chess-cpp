@@ -85,9 +85,6 @@ struct chessPiece
     u_int64_t getPieceBitBoard(short color, short piece) const;
     u_int64_t getPieceBitBoard(short color) const;
 
-    u_short getMinorPieceCnt(short color) const;
-    u_short getMajorPieceCnt(short color) const;
-    bool isEndgame() const;
 
 protected:
 

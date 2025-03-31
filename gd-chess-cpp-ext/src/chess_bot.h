@@ -1,154 +1,68 @@
 #ifndef CHESS_BOT_H
 #define CHESS_BOT_H
 
+#include <vector>
 #include "chess_logic.h"
-#include "strategy/eval_strategy.h"
 #include "strategy/move_strategy.h"
 #include "strategy/random_move.h"
 
+
 class ChessBot {
-public:
-    int evaluate_material(const ChessLogic &logic) const;
-    int evaluate_position(const ChessLogic &logic) const;
-    int evaluate_board_position(const ChessLogic &logic) const;
 
 protected:
-    const u_short PAWN_VALUE = 100;
-    const u_short KNIGHT_VALUE = 320;
-    const u_short BISHOP_VALUE = 330;
-    const u_short ROOK_VALUE = 500;
-    const u_short KING_VALUE = 20000;
-    const u_short QUEEN_VALUE = 900;
+    const std::string RANDOM_STRATEGY = "random";
 
-    const u_short pieceValues[7] = {
-        0, // Empty
-        PAWN_VALUE,
-        KNIGHT_VALUE,
-        BISHOP_VALUE,
-        ROOK_VALUE,
-        QUEEN_VALUE,
-        KING_VALUE
-    };
+    MoveStrategy * moveStrategy = nullptr;
 
-    const u_short WHT_PAWN_POS_TABLE[64] = {
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        10, 10, 10, 10, 10, 10, 10, 10,
-        0, 0, 0, 0, 0, 0, 0, 0,
-    };
-    const u_short BLK_PWN_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        10, 10, 10, 10, 10, 10, 10, 10,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-    };
+public:
+    const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    const u_short WHT_PAWN_ENDGAME_TABLE[64] = {
-        100, 100, 100, 100, 100, 100, 100, 100,
-        80,  80,  80,  80,  80,  80,  80,  80,
-        60,  60,  60,  60,  60,  60,  60,  60,
-        40,  40,  40,  40,  40,  40,  40,  40,
-        20,  20,  20,  20,  20,  20,  20,  20,
-        10,  10,  10,  10,  10,  10,  10,  10,
-        0,   0,   0,   0,   0,   0,   0,   0,
-        0,   0,   0,   0,   0,   0,   0,   0
-    };
+    // Constructor
+    ChessBot();
 
-    const u_short BLK_PWN_ENDGAME_TABLE[64] = {
-        0,   0,   0,   0,   0,   0,   0,   0,
-        0,   0,   0,   0,   0,   0,   0,   0,
-        10,  10,  10,  10,  10,  10,  10,  10,
-        20,  20,  20,  20,  20,  20,  20,  20,
-        40,  40,  40,  40,  40,  40,  40,  40,
-        60,  60,  60,  60,  60,  60,  60,  60,
-        80,  80,  80,  80,  80,  80,  80,  80,
-        100, 100, 100, 100, 100, 100, 100, 100
-    };
+    // Destructor
+    ~ChessBot();
 
-    const u_short WHT_KING_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        10, 10, 10, 10, 10, 10, 10, 10,
-    };
+    void setFEN(const std::string &fen);
 
-    const u_short BLK_KING_POS_TABLE[64] = {
-        10, 10, 10, 10, 10, 10, 10, 10,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-    };
+    void applyMove(const std::string &move);
 
-    const u_short KING_ENDGAME_TABLE[64] = {
-        0,  0,  0,  10, 10,  0,  0,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  0,  0,  10, 10,  0,  0,  0
-    };
+    ChessLogic::Move getBestMove(long timeLimit);
 
-    const u_short KNIGHT_POS_TABLE[64] = {
-        0,  0,  0,  10, 10,  0,  0,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  0,  0,  10, 10,  0,  0,  0
-    };
+    void setMoveStrategy(const std::string &strategy) {
+        if (moveStrategy != nullptr) {
+            delete moveStrategy;
+        }
 
-    const u_short BISHOP_POS_TABLE[64] = {
-        50, 40, 30, 20, 20, 30, 40, 50,
-        40, 30, 25, 20, 20, 25, 30, 40,
-        30, 25, 20, 15, 15, 20, 25, 30,
-        20, 20, 15, 10, 10, 15, 20, 20,
-        20, 20, 15, 10, 10, 15, 20, 20,
-        30, 25, 20, 15, 15, 20, 25, 30,
-        40, 30, 25, 20, 20, 25, 30, 40,
-        50, 40, 30, 20, 20, 30, 40, 50
-    };
+        if (strategy == RANDOM_STRATEGY) {
+            moveStrategy = new RandomMoveStrategy();
+        } else {
+            // Add other strategies here
+        }
+    }
 
-    const u_short ROOK_POS_TABLE[64] = {
-        30, 30, 30, 30, 30, 30, 30, 30,
-        30, 30, 30, 30, 30, 30, 30, 30,
-        10,  0,  0,  0,  0,  0,  0, 10,
-        10,  0,  0,  0,  0,  0,  0, 10,
-        10,  0,  0,  0,  0,  0,  0, 10,
-        10,  0,  0,  0,  0,  0,  0, 10,
-        30, 30, 30, 30, 30, 30, 30, 30,
-        30, 30, 30, 30, 30, 30, 30, 30
-    };
+    std::vector<std::string> listStrategies() {
+        return { RANDOM_STRATEGY };
+    }
 
-    const u_short QUEEN_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-    };
+    void boardFromFEN(const std::string &fen);
+
+protected:
+
+    ChessLogic::chessPiece chessBoard[64];
+    bool isWhiteTurn = true;
+    bool whiteQCastle = true;
+    bool whiteKCastle = true;
+    bool blackQCastle = true;
+    bool blackKCastle = true;
+    int enPassantSquare = -1;
+    int halfMoveClock = 0;
+    int fullMoveNumber = 1;
+
+    bool isWhite = true;
+
+    ChessLogic botLogic = ChessLogic();
+
 };
 
 #endif

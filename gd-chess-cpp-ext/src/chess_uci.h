@@ -45,7 +45,7 @@ protected:
     const short WHITE_COLOR = 1;
     const short BLACK_COLOR = 2;
     const short EMPTY_SQUARE = 0;
-    const std::string DEFUATL_FEN = "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1";
+    
 
     ChessLogic::chessPiece chessBoard[64];
     bool isWhiteTurn = true;

@@ -1,64 +1,78 @@
 #include "chess_bot.h"
+#include <regex>
+#include <cstdio>
+#include <cstdlib>
 
-// Evaluate the material score of the board
-int ChessBot::evaluate_material(const ChessLogic &logic) const {
-    int materialScore = 0;
-    const ChessLogic::chessPiece* board = logic.getChessBoard();
-    for (int i = 0; i < 64; ++i) {
-        const auto &piece = board[i];
-        if (piece.color == 1) { // White
-            materialScore += this->pieceValues[piece.type];
-        } else if (piece.color == 2) { // Black
-            materialScore -= this->pieceValues[piece.type];
-        }
-    }
-    return materialScore;
+// Constructor that defaults the move strategy to RandomMoveStrategy
+ChessBot::ChessBot() {
+    moveStrategy = new RandomMoveStrategy();
+    this->boardFromFEN(DEFAULT_FEN);
 }
 
-// Evaluate the positional score of the board
-int ChessBot::evaluate_position(const ChessLogic &logic) const {
-    int positionScore = 0;
-    const ChessLogic::chessPiece* board = logic.getChessBoard();
-    bool endgame = logic.isEndgame();
-
-    for (int i = 0; i < 64; ++i) {
-        const auto &piece = board[i];
-        if (piece.type == 0) continue; // Skip empty squares
-
-        switch (piece.type) {
-            case 1: // Pawn
-                if (endgame) {
-                    positionScore += (piece.color == 1 ? this->WHT_PAWN_ENDGAME_TABLE[i] : -this->BLK_PWN_ENDGAME_TABLE[i]);
-                } else {
-                    positionScore += (piece.color == 1 ? this->WHT_PAWN_POS_TABLE[i] : -this->BLK_PWN_POS_TABLE[i]);
-                }
-                break;
-            case 2: // Knight
-                positionScore += (piece.color == 1 ? this->KNIGHT_POS_TABLE[i] : -this->KNIGHT_POS_TABLE[i]);
-                break;
-            case 3: // Bishop
-                positionScore += (piece.color == 1 ? this->BISHOP_POS_TABLE[i] : -this->BISHOP_POS_TABLE[i]);
-                break;
-            case 4: // Rook
-                positionScore += (piece.color == 1 ? this->ROOK_POS_TABLE[i] : -this->ROOK_POS_TABLE[i]);
-                break;
-            case 5: // Queen
-                positionScore += (piece.color == 1 ? this->QUEEN_POS_TABLE[i] : -this->QUEEN_POS_TABLE[i]);
-                break;
-            case 6: // King
-                if (endgame) {
-                    positionScore += (piece.color == 1 ? this->KING_ENDGAME_TABLE[i] : -this->KING_ENDGAME_TABLE[i]);
-                } else {
-                    positionScore += (piece.color == 1 ? this->WHT_KING_POS_TABLE[i] : -this->BLK_KING_POS_TABLE[i]);
-                }
-                break;
-        }
+// Destructor that ensures the move strategy is deleted
+ChessBot::~ChessBot() {
+    if (moveStrategy != nullptr) {
+        delete moveStrategy;
+        moveStrategy = nullptr;
     }
-
-    return positionScore;
 }
 
-// Evaluate the overall board position
-int ChessBot::evaluate_board_position(const ChessLogic &logic) const {
-    return evaluate_material(logic) + evaluate_position(logic);
+void ChessBot::boardFromFEN(const std::string &fen) {
+    std::regex fenRegex("([0-8prnbqkPRNBQK/]+) ([wb]) ([KQkq-]+) ([0-8a-h-]+) (\\d+) (\\d+)");
+    std::smatch match;
+    if (std::regex_match(fen, match, fenRegex)) {
+        std::string board = match[1].str();
+        char turn = match[2].str()[0];
+        std::string castling = match[3].str();
+        std::string enPassant = match[4].str();
+        int halfMove = std::stoi(match[5].str());
+        int fullMove = std::stoi(match[6].str());
+
+        for (size_t i = 0; i < 64; i++) {
+            chessBoard[i] = {0, 0};
+        }
+
+        size_t index = 0;
+        for (char c : board) {
+            if (isdigit(c)) {
+                index += c - '0';
+            } else {
+                short color = (isupper(c)) ? 1 : 2;
+                short type = 0;
+                switch (tolower(c)) {
+                    case 'p': type = 1; break;
+                    case 'n': type = 2; break;
+                    case 'b': type = 3; break;
+                    case 'r': type = 4; break;
+                    case 'q': type = 5; break;
+                    case 'k': type = 6; break;
+                }
+                chessBoard[index] = {color, type};
+                index++;
+            }
+        }
+
+        isWhiteTurn = (turn == 'w');
+        whiteQCastle = castling.find('Q') != std::string::npos;
+        whiteKCastle = castling.find('K') != std::string::npos;
+        blackQCastle = castling.find('q') != std::string::npos;
+        blackKCastle = castling.find('k') != std::string::npos;
+
+        if (enPassant != "-") {
+            enPassantSquare = (enPassant[0] - 'a') + ((enPassant[1] - '1') * 8);
+        } else {
+            enPassantSquare = -1;
+        }
+
+        halfMoveClock = halfMove;
+        fullMoveNumber = fullMove;
+
+        // Update the bot logic with the new board state
+        botLogic.copyChessBoard(chessBoard);
+        botLogic.emtpyMoveStack();
+
+    } else {
+        fprintf(stderr, "Invalid FEN string format. Aborting program.\n");
+        std::abort();
+    }
 }

@@ -74,8 +74,10 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
                 return false; // Path must be clear
             }
         } else if (move.to == move.from + direction - 1 || move.to == move.from + direction + 1) { // Diagonal capture
-            if (internalBoard[move.to].type == 0 && move.moveType != 3) {
-                return false; // Must capture a piece or be an en passant move
+            if (internalBoard[move.to].type == 0) {
+                if (move.to != enPassantSquare || move.moveType != 3) {
+                    return false; // Must capture a piece or be a valid en passant move
+                }
             }
         } else {
             return false; // Invalid pawn move

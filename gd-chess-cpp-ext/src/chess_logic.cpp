@@ -180,60 +180,6 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
     return true; // If all checks pass, the move is legal
 }
 
-int ChessLogic::evaluate_material() const {
-    int materialScore = 0;
-    for (int i = 0; i < 64; ++i) {
-        const auto &piece = internalBoard[i];
-        if (piece.color == 1) { // White
-            materialScore += pieceValues[piece.type];
-        } else if (piece.color == 2) { // Black
-            materialScore -= pieceValues[piece.type];
-        }
-    }
-    return materialScore;
-}
-
-int ChessLogic::evaluate_position() const {
-    int positionScore = 0;
-    bool endgame = isEndgame();
-
-    for (int i = 0; i < 64; ++i) {
-        const auto &piece = internalBoard[i];
-        if (piece.type == 0) continue; // Skip empty squares
-
-        switch (piece.type) {
-            case 1: // Pawn
-                if (endgame) {
-                    positionScore += (piece.color == 1 ? WHT_PAWN_ENDGAME_TABLE[i] : -BLK_PWN_ENDGAME_TABLE[i]);
-                } else {
-                    positionScore += (piece.color == 1 ? WHT_PAWN_POS_TABLE[i] : -BLK_PWN_POS_TABLE[i]);
-                }
-                break;
-            case 2: // Knight
-                positionScore += (piece.color == 1 ? KNIGHT_POS_TABLE[i] : -KNIGHT_POS_TABLE[i]);
-                break;
-            case 3: // Bishop
-                positionScore += (piece.color == 1 ? BISHOP_POS_TABLE[i] : -BISHOP_POS_TABLE[i]);
-                break;
-            case 4: // Rook
-                positionScore += (piece.color == 1 ? ROOK_POS_TABLE[i] : -ROOK_POS_TABLE[i]);
-                break;
-            case 5: // Queen
-                positionScore += (piece.color == 1 ? QUEEN_POS_TABLE[i] : -QUEEN_POS_TABLE[i]);
-                break;
-            case 6: // King
-                if (endgame) {
-                    positionScore += (piece.color == 1 ? KING_ENDGAME_TABLE[i] : -KING_ENDGAME_TABLE[i]);
-                } else {
-                    positionScore += (piece.color == 1 ? WHT_KING_POS_TABLE[i] : -BLK_KING_POS_TABLE[i]);
-                }
-                break;
-        }
-    }
-
-    return positionScore;
-}
-
 u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
     u_int64_t bitboard = 0;
     for (short i = 0; i < 64; ++i) {
@@ -340,10 +286,6 @@ std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
     }
 
     return legalMoves;
-}
-
-int ChessLogic::evaluate_board_position() const {
-    return evaluate_material() + evaluate_position();
 }
 
 void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
@@ -464,6 +406,11 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
 }
 
 std::string ChessLogic::translateMoveToString(const Move &move) const {
+    // Check for a null move
+    if (move.from == -1 && move.to == -1) {
+        return "0000"; // Null move representation
+    }
+
     std::string moveStr;
 
     // Convert the 'from' square to algebraic notation

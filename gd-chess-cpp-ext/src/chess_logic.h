@@ -33,6 +33,10 @@ struct chessPiece
         short color; // Color of the piece making the move (1 for white, 2 for black)
         short piece; // Piece type (1-6 for pawn to king)
         short moveType; // Type of move (0 for normal, 1 for Kindgside castling, 2 for Queenside castling, 3 for en passant)
+
+        // Default constructor for a null move
+        Move() 
+            : from(-1), to(-1), promotion(-1), capture(-1), color(-1), piece(-1), moveType(-1) {}
     };
 
     // Constructor
@@ -43,10 +47,6 @@ struct chessPiece
 
     // Get all legal moves for the current board position
     std::vector<Move> get_legal_moves(bool isWhite);
-
-    // Evaluate the current board position
-    // Returns a score where positive values favor white and negative values favor black
-    int evaluate_board_position() const;
 
     void copyChessBoard(const chessPiece inputBoard[64]);
 
@@ -81,8 +81,6 @@ struct chessPiece
 
     // Helper methods for move generation and evaluation
     bool isMovePsuedoLegal(const Move &move) const;
-    int evaluate_material() const;
-    int evaluate_position() const;
 
     u_int64_t getPieceBitBoard(short color, short piece) const;
     u_int64_t getPieceBitBoard(short color) const;
@@ -93,147 +91,9 @@ struct chessPiece
 
 protected:
 
-    const u_short PAWN_VALUE = 100;
-    const u_short KNIGHT_VALUE = 320;
-    const u_short BISHOP_VALUE = 330;
-    const u_short ROOK_VALUE = 500;
-    const u_short KING_VALUE = 20000;
-    const u_short QUEEN_VALUE = 900;
-
-    const u_short pieceValues[7] = {
-        0, // Empty
-        PAWN_VALUE,
-        KNIGHT_VALUE,
-        BISHOP_VALUE,
-        ROOK_VALUE,
-        QUEEN_VALUE,
-        KING_VALUE
-    };
-
     chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
 
     std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
-
-    const u_short WHT_PAWN_POS_TABLE[64] = {
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        10, 10, 10, 10, 10, 10, 10, 10,
-        0, 0, 0, 0, 0, 0, 0, 0,
-    };
-    const u_short BLK_PWN_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        10, 10, 10, 10, 10, 10, 10, 10,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-        20, 20, 20, 20, 20, 20, 20, 20,
-    };
-
-    const u_short WHT_PAWN_ENDGAME_TABLE[64] = {
-        100, 100, 100, 100, 100, 100, 100, 100, // First row
-        80,  80,  80,  80,  80,  80,  80,  80,  // Second row
-        60,  60,  60,  60,  60,  60,  60,  60,  // Third row
-        40,  40,  40,  40,  40,  40,  40,  40,  // Fourth row
-        20,  20,  20,  20,  20,  20,  20,  20,  // Fifth row
-        10,  10,  10,  10,  10,  10,  10,  10,  // Sixth row
-        0,   0,   0,   0,   0,   0,   0,   0,   // Seventh row
-        0,   0,   0,   0,   0,   0,   0,   0    // Eighth row
-    };
-
-    const u_short BLK_PWN_ENDGAME_TABLE[64] = {
-        0,   0,   0,   0,   0,   0,   0,   0,   // First row
-        0,   0,   0,   0,   0,   0,   0,   0,   // Second row
-        10,  10,  10,  10,  10,  10,  10,  10,  // Third row
-        20,  20,  20,  20,  20,  20,  20,  20,  // Fourth row
-        40,  40,  40,  40,  40,  40,  40,  40,  // Fifth row
-        60,  60,  60,  60,  60,  60,  60,  60,  // Sixth row
-        80,  80,  80,  80,  80,  80,  80,  80,  // Seventh row
-        100, 100, 100, 100, 100, 100, 100, 100  // Eighth row
-    };
-
-    const u_short WHT_KING_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        10, 10, 10, 10, 10, 10, 10, 10,
-    };
-
-    const u_short BLK_KING_POS_TABLE[64] = {
-        10, 10, 10, 10, 10, 10, 10, 10, // First row
-        0,  0,  0,  0,  0,  0,  0,  0,  // Second row
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-    };
-
-
-    const u_short KING_ENDGAME_TABLE[64] = {
-        0,  0,  0,  10, 10,  0,  0,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  0,  0,  10, 10,  0,  0,  0
-    };
-
-    const u_short KNIGHT_POS_TABLE[64] = {
-        0,  0,  0,  10, 10,  0,  0,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        10, 30, 45, 50, 50, 45, 30, 10,
-        0,  20, 40, 45, 45, 40, 20,  0,
-        0,  10, 20, 30, 30, 20, 10,  0,
-        0,  0,  0,  10, 10,  0,  0,  0
-    };
-
-    const u_short BISHOP_POS_TABLE[64] = {
-        50, 40, 30, 20, 20, 30, 40, 50, // First row
-        40, 30, 25, 20, 20, 25, 30, 40, // Second row
-        30, 25, 20, 15, 15, 20, 25, 30, // Third row
-        20, 20, 15, 10, 10, 15, 20, 20, // Fourth row
-        20, 20, 15, 10, 10, 15, 20, 20, // Fifth row
-        30, 25, 20, 15, 15, 20, 25, 30, // Sixth row
-        40, 30, 25, 20, 20, 25, 30, 40, // Seventh row
-        50, 40, 30, 20, 20, 30, 40, 50  // Eighth row
-    };
-
-    const u_short ROOK_POS_TABLE[64] = {
-        30, 30, 30, 30, 30, 30, 30, 30, // First row
-        30, 30, 30, 30, 30, 30, 30, 30, // Second row
-        10,  0,  0,  0,  0,  0,  0, 10, // Third row
-        10,  0,  0,  0,  0,  0,  0, 10, // Fourth row
-        10,  0,  0,  0,  0,  0,  0, 10, // Fifth row
-        10,  0,  0,  0,  0,  0,  0, 10, // Sixth row
-        30, 30, 30, 30, 30, 30, 30, 30, // Seventh row
-        30, 30, 30, 30, 30, 30, 30, 30  // Eighth row
-    };
-
-    const u_short QUEEN_POS_TABLE[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-    };
     
 };
 

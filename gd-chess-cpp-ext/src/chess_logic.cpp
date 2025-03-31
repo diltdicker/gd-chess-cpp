@@ -166,9 +166,18 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
             // Ensure the path is clear and the rook is in the correct position
             short rookSquare = (move.moveType == 1) ? move.from + 3 : move.from - 4;
             short step = (move.moveType == 1) ? 1 : -1;
+
+            // Check castling rights
+            if ((move.color == 1 && move.moveType == 1 && !whiteKCastle) || 
+                (move.color == 1 && move.moveType == 2 && !whiteQCastle) || 
+                (move.color == 2 && move.moveType == 1 && !blackKCastle) || 
+                (move.color == 2 && move.moveType == 2 && !blackQCastle)) {
+                return false; // Castling not allowed
+            }
+
             for (short i = move.from + step; i != rookSquare; i += step) {
                 if (internalBoard[i].type != 0) {
-                    return false;
+                    return false; // Path must be clear
                 }
             }
             if (internalBoard[rookSquare].type != 4 || internalBoard[rookSquare].color != move.color) {
@@ -177,7 +186,7 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
         }
     }
 
-    return true; // If all checks pass, the move is legal
+    return true; // If all checks pass, the move is pseudo-legal
 }
 
 u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
@@ -219,44 +228,8 @@ std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
         if (internalBoard[i].color == color) {
             for (short j = 0; j < 64; ++j) {
                 Move move = translateMove(i, j);
-                if (isMovePsuedoLegal(move)) {
-                    // Handle pawn promotion
-                    if (move.piece == 1 && (j / 8 == 0 || j / 8 == 7)) { // Pawn reaches the last rank
-                        for (short promotionPiece = 2; promotionPiece <= 5; ++promotionPiece) { // Knight, Bishop, Rook, Queen
-                            move.promotion = promotionPiece;
-
-                            // Temporarily make the move
-                            chessPiece originalTo = internalBoard[move.to];
-                            chessPiece originalFrom = internalBoard[move.from];
-                            internalBoard[move.to] = internalBoard[move.from];
-                            internalBoard[move.to].type = promotionPiece; // Promote the pawn
-                            internalBoard[move.from] = {0, 0};
-
-                            // Check if the move leaves the king in check
-                            if (!isInCheck(color)) {
-                                legalMoves.push_back(move);
-                            }
-
-                            // Undo the move
-                            internalBoard[move.from] = originalFrom;
-                            internalBoard[move.to] = originalTo;
-                        }
-                    } else {
-                        // Temporarily make the move
-                        chessPiece originalTo = internalBoard[move.to];
-                        chessPiece originalFrom = internalBoard[move.from];
-                        internalBoard[move.to] = internalBoard[move.from];
-                        internalBoard[move.from] = {0, 0};
-
-                        // Check if the move leaves the king in check
-                        if (!isInCheck(color)) {
-                            legalMoves.push_back(move);
-                        }
-
-                        // Undo the move
-                        internalBoard[move.from] = originalFrom;
-                        internalBoard[move.to] = originalTo;
-                    }
+                if (isMoveLegal(move)) {
+                    legalMoves.push_back(move);
                 }
             }
         }
@@ -275,10 +248,102 @@ void ChessLogic::make_move(const Move &move) {
     // Push the move onto the stack for undo functionality
     moveStack.push(move);
 
-    // Update the internal board
+    // Handle castling
+    if (move.moveType == 1) { // Kingside castling
+        internalBoard[move.to] = internalBoard[move.from]; // Move king
+        internalBoard[move.from] = {0, 0}; // Clear king's original square
+        internalBoard[move.to - 1] = internalBoard[move.to + 1]; // Move rook
+        internalBoard[move.to + 1] = {0, 0}; // Clear rook's original square
+        return;
+    } else if (move.moveType == 2) { // Queenside castling
+        internalBoard[move.to] = internalBoard[move.from]; // Move king
+        internalBoard[move.from] = {0, 0}; // Clear king's original square
+        internalBoard[move.to + 1] = internalBoard[move.to - 2]; // Move rook
+        internalBoard[move.to - 2] = {0, 0}; // Clear rook's original square
+        return;
+    }
+
+    // Handle en passant
+    if (move.moveType == 3) { // En passant
+        internalBoard[move.to] = internalBoard[move.from]; // Move pawn
+        internalBoard[move.from] = {0, 0}; // Clear pawn's original square
+        short capturedPawnSquare = (move.color == 1) ? move.to + 8 : move.to - 8;
+        internalBoard[capturedPawnSquare] = {0, 0}; // Clear the captured pawn
+        return;
+    }
+
+    // Update the internal board for normal moves
     internalBoard[move.to] = internalBoard[move.from];
     internalBoard[move.to].type = move.promotion ? move.promotion : internalBoard[move.from].type;
     internalBoard[move.from] = {0, 0}; // Clear the starting square
+
+    // Update castling rights
+    if (move.from == 60) { // White king moves
+        whiteQCastle = false;
+        whiteKCastle = false;
+    } else if (move.from == 56) { // White queenside rook moves
+        whiteQCastle = false;
+    } else if (move.from == 63) { // White kingside rook moves
+        whiteKCastle = false;
+    } else if (move.from == 4) { // Black king moves
+        blackQCastle = false;
+        blackKCastle = false;
+    } else if (move.from == 0) { // Black queenside rook moves
+        blackQCastle = false;
+    } else if (move.from == 7) { // Black kingside rook moves
+        blackKCastle = false;
+    }
+
+    // Update en passant square
+    if (move.moveType == 4) { // Pawn double move
+        enPassantSquare = (move.from + move.to) / 2; // Set en passant square
+    } else {
+        enPassantSquare = -1; // Reset en passant square
+    }
+}
+
+bool ChessLogic::isMoveLegal(const Move &move) {
+    if (!isMovePsuedoLegal(move)) {
+        return false; // Move is not pseudo-legal
+    }
+    bool isLegal = true;
+    // Temporarily make the move
+    make_move(move);
+
+    if (isInCheck(move.color)) {
+        isLegal = false; // Move leaves the king in check
+    }
+
+    undo_move(); // Undo the move
+
+    // Additional checks for castling
+    if (isLegal && move.piece == 6 && (move.moveType == 1 || move.moveType == 2)) { // King castling
+        short step = (move.moveType == 1) ? 1 : -1; // Kingside or Queenside
+        short kingSquare = move.from;
+
+        // Check if the king passes through or lands on a square under attack
+        for (short i = 0; i <= 2; ++i) { // Check up to 2 squares (including the destination)
+            if (isInCheck(move.color)) {
+                isLegal = false; // King passes through or lands on a square under attack
+                break;
+            }
+            kingSquare += step; // Move the king to the next square
+
+            ChessLogic::Move stepMove = Move();
+            stepMove.from = move.from;
+            stepMove.to = kingSquare;
+            stepMove.piece = move.piece;
+            stepMove.color = move.color;
+            make_move(stepMove); // Temporarily move the king
+        }
+
+        // Undo the temporary moves
+        for (short i = 0; i <= 2; ++i) {
+            undo_move();
+        }
+    }
+
+    return isLegal;
 }
 
 void ChessLogic::undo_move() {
@@ -320,6 +385,31 @@ void ChessLogic::undo_move() {
     if (lastMove.piece == 1 && lastMove.promotion != 0) { // If the move was a pawn promotion
         internalBoard[lastMove.from].type = 1; // Restore the piece type to pawn
     }
+
+    // Restore castling rights
+    if (lastMove.from == 60) { // White king moves
+        whiteQCastle = true;
+        whiteKCastle = true;
+    } else if (lastMove.from == 56) { // White queenside rook moves
+        whiteQCastle = true;
+    } else if (lastMove.from == 63) { // White kingside rook moves
+        whiteKCastle = true;
+    } else if (lastMove.from == 4) { // Black king moves
+        blackQCastle = true;
+        blackKCastle = true;
+    } else if (lastMove.from == 0) { // Black queenside rook moves
+        blackQCastle = true;
+    } else if (lastMove.from == 7) { // Black kingside rook moves
+        blackKCastle = true;
+    }
+
+    // Restore en passant square
+    if (!moveStack.empty()) {
+        const Move &previousMove = moveStack.top();
+        enPassantSquare = (previousMove.moveType == 4) ? (previousMove.from + previousMove.to) / 2 : -1;
+    } else {
+        enPassantSquare = -1; // Reset if no previous move
+    }
 }
 
 void ChessLogic::emtpyMoveStack() {
@@ -342,10 +432,12 @@ ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) con
         move.capture = 0;
     }
 
-    // Determine move type (e.g., castling, en passant)
+    // Determine move type (e.g., castling, en passant, pawn double move)
     move.moveType = 0; // Default to normal move
     if (move.piece == 6 && abs(fromSquare - toSquare) == 2) { // King castling
         move.moveType = (toSquare > fromSquare) ? 1 : 2; // Kingside or Queenside
+    } else if (move.piece == 1 && abs(fromSquare - toSquare) == 16) { // Pawn double move
+        move.moveType = 4;
     } else if (move.piece == 1 && internalBoard[toSquare].type == 0 && abs(fromSquare - toSquare) % 8 != 0) { // En passant
         move.moveType = 3;
         move.capture = 1; // Pawn captured

@@ -6,7 +6,8 @@
 // Constructor that defaults the move strategy to RandomMoveStrategy
 ChessBot::ChessBot() {
     moveStrategy = new RandomMoveStrategy();
-    this->boardFromFEN(DEFAULT_FEN);
+    evalStrategy = new NoEvalStrategy();
+    this->setFEN(DEFAULT_FEN);
 }
 
 // Destructor that ensures the move strategy is deleted
@@ -15,11 +16,29 @@ ChessBot::~ChessBot() {
         delete moveStrategy;
         moveStrategy = nullptr;
     }
+    if (evalStrategy != nullptr) {
+        delete evalStrategy;
+        evalStrategy = nullptr;
+    }
 }
 
-void ChessBot::boardFromFEN(const std::string &fen) {
+void ChessBot::applyMove(const std::string &move) {
+    
+
+    // Apply the move using the bot logic
+    botLogic.make_move(botLogic.translateMove(move));
+}
+
+ChessLogic::Move ChessBot::getBestMove(long timeLimit) {
+    // Use the move strategy to get the best move
+    return moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, timeLimit);
+}
+
+void ChessBot::setFEN(const std::string &fen) {
     std::regex fenRegex("([0-8prnbqkPRNBQK/]+) ([wb]) ([KQkq-]+) ([0-8a-h-]+) (\\d+) (\\d+)");
     std::smatch match;
+    ChessLogic::chessPiece chessBoard[64]; // Initialize the chess board
+
     if (std::regex_match(fen, match, fenRegex)) {
         std::string board = match[1].str();
         char turn = match[2].str()[0];
@@ -53,15 +72,15 @@ void ChessBot::boardFromFEN(const std::string &fen) {
         }
 
         isWhiteTurn = (turn == 'w');
-        whiteQCastle = castling.find('Q') != std::string::npos;
-        whiteKCastle = castling.find('K') != std::string::npos;
-        blackQCastle = castling.find('q') != std::string::npos;
-        blackKCastle = castling.find('k') != std::string::npos;
+        botLogic.whiteQCastle = castling.find('Q') != std::string::npos;
+        botLogic.whiteKCastle = castling.find('K') != std::string::npos;
+        botLogic.blackQCastle = castling.find('q') != std::string::npos;
+        botLogic.blackKCastle = castling.find('k') != std::string::npos;
 
         if (enPassant != "-") {
-            enPassantSquare = (enPassant[0] - 'a') + ((enPassant[1] - '1') * 8);
+            botLogic.enPassantSquare = (enPassant[0] - 'a') + ((enPassant[1] - '1') * 8);
         } else {
-            enPassantSquare = -1;
+            botLogic.enPassantSquare = -1;
         }
 
         halfMoveClock = halfMove;

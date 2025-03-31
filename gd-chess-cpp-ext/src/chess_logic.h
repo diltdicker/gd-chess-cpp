@@ -32,12 +32,18 @@ struct chessPiece
         short capture; // Capture piece type (0-6 for none, knight, bishop, rook, queen, king)
         short color; // Color of the piece making the move (1 for white, 2 for black)
         short piece; // Piece type (1-6 for pawn to king)
-        short moveType; // Type of move (0 for normal, 1 for Kindgside castling, 2 for Queenside castling, 3 for en passant)
+        short moveType; // Type of move (0 for normal, 1 for Kindgside castling, 2 for Queenside castling, 3 for en passant, 4 for pawn double move)
 
         // Default constructor for a null move
         Move() 
             : from(-1), to(-1), promotion(-1), capture(-1), color(-1), piece(-1), moveType(-1) {}
     };
+
+    bool whiteQCastle = true;
+    bool whiteKCastle = true;
+    bool blackQCastle = true;
+    bool blackKCastle = true;
+    int enPassantSquare = -1;
 
     // Constructor
     ChessLogic();
@@ -47,6 +53,8 @@ struct chessPiece
 
     // Get all legal moves for the current board position
     std::vector<Move> get_legal_moves(bool isWhite);
+
+    bool isMoveLegal(const Move &move);
 
     void copyChessBoard(const chessPiece inputBoard[64]);
 

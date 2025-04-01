@@ -1,5 +1,4 @@
 #include "position_eval.h"
-#include "../chess_logic.h"
 
 
 bool PositionEvalStrategy::isEndgame(const ChessLogic::chessPiece* board) {

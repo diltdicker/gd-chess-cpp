@@ -1,6 +1,4 @@
 #include "material_eval.h"
-#include "../chess_logic.h"
-#include "eval_strategy.h"
 
 
 int MaterialEvalStrategy::evaluate(const ChessLogic::chessPiece* board) {

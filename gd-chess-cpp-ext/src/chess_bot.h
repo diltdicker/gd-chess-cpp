@@ -4,10 +4,10 @@
 #include <vector>
 #include <iostream>
 #include "chess_logic.h"
-#include "strategy/move_strategy.h"
-#include "strategy/eval_strategy.h"
+#include "move_strategy.h"
+#include "eval_strategy.h"
 #include "strategy/random_move.h"
-#include "strategy/no_eval.h"
+#include "no_eval.h"
 
 
 class ChessBot {

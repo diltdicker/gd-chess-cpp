@@ -1,7 +1,7 @@
 #ifndef NO_EVAL_H
 #define NO_EVAL_H
 
-#include "../chess_logic.h"
+#include "chess_logic.h"
 #include "eval_strategy.h"
 
 class NoEvalStrategy : public EvaluationStrategy {

@@ -3,7 +3,7 @@
 
 ChessLogic::Move RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
                                                  bool isWhite, long ms_time) {
-    std::vector<ChessLogic::Move> legalMoves = logic.get_legal_moves(isWhite);
+    std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
     if (legalMoves.empty()) {
         return ChessLogic::Move(); // Return a null move if no legal moves are available
     }

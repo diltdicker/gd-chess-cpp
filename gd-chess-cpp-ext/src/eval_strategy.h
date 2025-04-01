@@ -1,7 +1,7 @@
 #ifndef EVALUATION_STRATEGY_H
 #define EVALUATION_STRATEGY_H
 
-#include "../chess_logic.h"
+#include "chess_logic.h"
 
 class EvaluationStrategy {
 

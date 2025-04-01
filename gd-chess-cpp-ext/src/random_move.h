@@ -2,7 +2,7 @@
 #define RANDOM_MOVE_H
 
 #include <vector>
-#include "../chess_logic.h"
+#include "chess_logic.h"
 #include "move_strategy.h"
 #include "eval_strategy.h"
 

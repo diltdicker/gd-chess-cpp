@@ -1,7 +1,7 @@
 #ifndef MOVE_STRATEGY_H
 #define MOVE_STRATEGY_H
 
-#include "../chess_logic.h"
+#include "chess_logic.h"
 #include "eval_strategy.h"
 
 class MoveStrategy {

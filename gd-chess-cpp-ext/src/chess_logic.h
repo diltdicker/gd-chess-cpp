@@ -52,7 +52,7 @@ struct chessPiece
     ~ChessLogic();
 
     // Get all legal moves for the current board position
-    std::vector<Move> get_legal_moves(bool isWhite);
+    std::vector<Move> getLegalMoves(bool isWhite);
 
     bool isMoveLegal(const Move &move);
 
@@ -62,14 +62,14 @@ struct chessPiece
     const chessPiece* getChessBoard() const;
 
     // Make a move on the board
-    void make_move(const Move &move);
+    void makeMove(const Move &move);
 
     void emtpyMoveStack();
 
     bool isInCheck(short color) const;
 
     // Undo the last move
-    void undo_move();
+    void undoMove();
 
     Move translateMove(short fromSquare, short toSquare) const;
 

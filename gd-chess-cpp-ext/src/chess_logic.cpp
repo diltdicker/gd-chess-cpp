@@ -222,7 +222,13 @@ ChessLogic::~ChessLogic() {
     // Destructor logic if needed
 }
 
-std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
+void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
+    for (int i = 0; i < 64; ++i) {
+        internalBoard[i] = inputBoard[i];
+    }
+}
+
+std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
     std::vector<Move> legalMoves;
     short color = isWhite ? 1 : 2;
     short opponentColor = isWhite ? 2 : 1;
@@ -249,13 +255,7 @@ std::vector<ChessLogic::Move> ChessLogic::get_legal_moves(bool isWhite) {
     return legalMoves;
 }
 
-void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
-    for (int i = 0; i < 64; ++i) {
-        internalBoard[i] = inputBoard[i];
-    }
-}
-
-void ChessLogic::make_move(const Move &move) {
+void ChessLogic::makeMove(const Move &move) {
     // Push the move onto the stack for undo functionality
     moveStack.push(move);
 
@@ -319,13 +319,13 @@ bool ChessLogic::isMoveLegal(const Move &move) {
     }
     bool isLegal = true;
     // Temporarily make the move
-    make_move(move);
+    makeMove(move);
 
     if (isInCheck(move.color)) {
         isLegal = false; // Move leaves the king in check
     }
 
-    undo_move(); // Undo the move
+    undoMove(); // Undo the move
 
     // Additional checks for castling
     if (isLegal && move.piece == 6 && (move.moveType == 1 || move.moveType == 2)) { // King castling
@@ -345,19 +345,19 @@ bool ChessLogic::isMoveLegal(const Move &move) {
             stepMove.to = kingSquare;
             stepMove.piece = move.piece;
             stepMove.color = move.color;
-            make_move(stepMove); // Temporarily move the king
+            makeMove(stepMove); // Temporarily move the king
         }
 
         // Undo the temporary moves
         for (short i = 0; i <= 2; ++i) {
-            undo_move();
+            undoMove();
         }
     }
 
     return isLegal;
 }
 
-void ChessLogic::undo_move() {
+void ChessLogic::undoMove() {
     if (moveStack.empty()) {
         return;
     }

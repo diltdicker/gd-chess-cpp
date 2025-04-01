@@ -26,7 +26,7 @@ void ChessBot::applyMove(const std::string &move) {
     
 
     // Apply the move using the bot logic
-    botLogic.make_move(botLogic.translateMove(move));
+    botLogic.makeMove(botLogic.translateMove(move));
 }
 
 ChessLogic::Move ChessBot::getBestMove(long timeLimit) {

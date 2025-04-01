@@ -1,7 +1,7 @@
 #ifndef POSITION_EVAL_H
 #define POSITION_EVAL_H
 
-#include "../chess_logic.h"
+#include "chess_logic.h"
 #include "eval_strategy.h"
 
 class PositionEvalStrategy : public EvaluationStrategy {

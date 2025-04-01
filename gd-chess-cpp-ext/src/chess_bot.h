@@ -6,7 +6,7 @@
 #include "chess_logic.h"
 #include "move_strategy.h"
 #include "eval_strategy.h"
-#include "strategy/random_move.h"
+#include "random_move.h"
 #include "no_eval.h"
 
 

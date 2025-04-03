@@ -58,6 +58,8 @@ public:
 
     ChessLogic::Move getBestMove(std::vector<ChessLogic::Move> &moves);
 
+    bool validateMove(const std::string &move);
+
     void setMoveStrategy(const std::string &strategy) {
         if (moveStrategy != nullptr) {
             delete moveStrategy;

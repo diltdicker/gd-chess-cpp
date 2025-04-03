@@ -191,8 +191,8 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
     return true; // If all checks pass, the move is pseudo-legal
 }
 
-u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
-    u_int64_t bitboard = 0;
+uint64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
+    uint64_t bitboard = 0;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].color == color && internalBoard[i].type == piece) {
             bitboard |= (1ULL << i);
@@ -201,8 +201,8 @@ u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
     return bitboard;
 }
 
-u_int64_t ChessLogic::getPieceBitBoard(short color) const {
-    u_int64_t bitboard = 0;
+uint64_t ChessLogic::getPieceBitBoard(short color) const {
+    uint64_t bitboard = 0;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].color == color) {
             bitboard |= (1ULL << i);
@@ -233,7 +233,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
     short color = isWhite ? 1 : 2;
     short opponentColor = isWhite ? 2 : 1;
 
-    u_int64_t colorBitboard = getPieceBitBoard(color);
+    uint64_t colorBitboard = getPieceBitBoard(color);
     std::vector<short> fromSquares = bitboardToSquares(colorBitboard); // own squares
     std::vector<short> toSquares = bitboardToSquares(
         getPawnMoveBitBoard(color) | getKnightMoveBitBoard(color) | getBishopMoveBitBoard(color) |
@@ -598,7 +598,7 @@ bool ChessLogic::isInCheck(short color) const {
     return false; // No attacks found, king is not in check
 }
 
-std::vector<short> ChessLogic::bitboardToSquares(u_int64_t bitboard) const {
+std::vector<short> ChessLogic::bitboardToSquares(uint64_t bitboard) const {
     std::vector<short> squares;
     for (short i = 0; i < 64; ++i) {
         if (bitboard & (1ULL << i)) {
@@ -608,15 +608,15 @@ std::vector<short> ChessLogic::bitboardToSquares(u_int64_t bitboard) const {
     return squares;
 }
 
-u_int64_t ChessLogic::getPawnMoveBitBoard(short color) const {
-    u_int64_t pawnBitboard = getPieceBitBoard(color, 1); // Get bitboard for pawns
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getPawnMoveBitBoard(short color) const {
+    uint64_t pawnBitboard = getPieceBitBoard(color, 1); // Get bitboard for pawns
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t singlePush = 0;
-    u_int64_t doublePush = 0;
-    u_int64_t capturesLeft = 0;
-    u_int64_t capturesRight = 0;
+    uint64_t singlePush = 0;
+    uint64_t doublePush = 0;
+    uint64_t capturesLeft = 0;
+    uint64_t capturesRight = 0;
 
     if (color == 1) { // White pawns
         singlePush = (pawnBitboard << 8) & emptySquares; // Move one square forward
@@ -634,12 +634,12 @@ u_int64_t ChessLogic::getPawnMoveBitBoard(short color) const {
     return singlePush | doublePush | capturesLeft | capturesRight;
 }
 
-u_int64_t ChessLogic::getKnightMoveBitBoard(short color) const {
-    u_int64_t knightBitboard = getPieceBitBoard(color, 2); // Get bitboard for knights
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getKnightMoveBitBoard(short color) const {
+    uint64_t knightBitboard = getPieceBitBoard(color, 2); // Get bitboard for knights
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t knightMoves = 0;
+    uint64_t knightMoves = 0;
     const short knightOffsets[8] = {-17, -15, -10, -6, 6, 10, 15, 17};
 
     for (short i = 0; i < 64; ++i) {
@@ -665,12 +665,12 @@ u_int64_t ChessLogic::getKnightMoveBitBoard(short color) const {
 
     return knightMoves & emptySquares | opponentBitboard;
 }
-u_int64_t ChessLogic::getBishopMoveBitBoard(short color) const {
-    u_int64_t bishopBitboard = getPieceBitBoard(color, 3); // Get bitboard for bishops
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getBishopMoveBitBoard(short color) const {
+    uint64_t bishopBitboard = getPieceBitBoard(color, 3); // Get bitboard for bishops
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t bishopMoves = 0;
+    uint64_t bishopMoves = 0;
     const short bishopOffsets[4][2] = {{-9, -7}, {7, -9}, {9, 7}, {-7, 9}};
 
     for (short i = 0; i < 64; ++i) {
@@ -695,12 +695,12 @@ u_int64_t ChessLogic::getBishopMoveBitBoard(short color) const {
 
     return bishopMoves & emptySquares | opponentBitboard;
 }
-u_int64_t ChessLogic::getRookMoveBitBoard(short color) const {
-    u_int64_t rookBitboard = getPieceBitBoard(color, 4); // Get bitboard for rooks
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getRookMoveBitBoard(short color) const {
+    uint64_t rookBitboard = getPieceBitBoard(color, 4); // Get bitboard for rooks
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t rookMoves = 0;
+    uint64_t rookMoves = 0;
     const short rookOffsets[4][2] = {{-8, 0}, {8, 0}, {0, -1}, {0, 1}};
 
     for (short i = 0; i < 64; ++i) {
@@ -726,20 +726,20 @@ u_int64_t ChessLogic::getRookMoveBitBoard(short color) const {
     return rookMoves & emptySquares | opponentBitboard;
 }
 
-u_int64_t ChessLogic::getQueenMoveBitBoard(short color) const {
-    u_int64_t queenBitboard = getPieceBitBoard(color, 5); // Get bitboard for queens
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getQueenMoveBitBoard(short color) const {
+    uint64_t queenBitboard = getPieceBitBoard(color, 5); // Get bitboard for queens
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
     return (getBishopMoveBitBoard(color) | getRookMoveBitBoard(color)) & emptySquares | opponentBitboard;
 }
 
-u_int64_t ChessLogic::getKingMoveBitBoard(short color) const {
-    u_int64_t kingBitboard = getPieceBitBoard(color, 6); // Get bitboard for kings
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getKingMoveBitBoard(short color) const {
+    uint64_t kingBitboard = getPieceBitBoard(color, 6); // Get bitboard for kings
+    uint64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t kingMoves = 0;
+    uint64_t kingMoves = 0;
     const short kingOffsets[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
     for (short i = 0; i < 64; ++i) {

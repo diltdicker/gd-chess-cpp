@@ -14,7 +14,7 @@
 #define CHESS_UCI_H
 
 #include <string>
-#include "chess_logic.h"
+#include "chess_bot.h"
 
 class ChessUCI {
 
@@ -32,30 +32,19 @@ public:
 
     void fenBoardUpdate(const char * fen);
 
-    
+    void setFENBoard(const char * fen);
+
+    bool validateMove(const char * move);
+
+    char * getBotMove(short searchDepth, int timeLimit);
+
+    void setOption(const char * option, const char * value);
+
+    char * getEval();
 
 protected:
 
-    const short PAWN_TYPE = 1;
-    const short KNIGHT_TYPE = 2;
-    const short BISHOP_TYPE = 3;
-    const short ROOK_TYPE = 4;
-    const short QUEEN_TYPE = 5;
-    const short KING_TYPE = 6;
-    const short WHITE_COLOR = 1;
-    const short BLACK_COLOR = 2;
-    const short EMPTY_SQUARE = 0;
-    
 
-    ChessLogic::chessPiece chessBoard[64];
-    bool isWhiteTurn = true;
-    bool whiteQCastle = true;
-    bool whiteKCastle = true;
-    bool blackQCastle = true;
-    bool blackKCastle = true;
-    int enPassantSquare = -1;
-    int halfMoveClock = 0;
-    int fullMoveNumber = 1;
 
 private:
 

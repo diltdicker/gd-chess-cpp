@@ -16,7 +16,7 @@ public:
 
 protected:
 
-    const u_short WHT_PAWN_POS_TABLE[64] = {
+    const short WHT_PAWN_POS_TABLE[64] = {
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
@@ -26,7 +26,7 @@ protected:
         10, 10, 10, 10, 10, 10, 10, 10,
         0, 0, 0, 0, 0, 0, 0, 0,
     };
-    const u_short BLK_PWN_POS_TABLE[64] = {
+    const short BLK_PWN_POS_TABLE[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         10, 10, 10, 10, 10, 10, 10, 10,
         20, 20, 20, 20, 20, 20, 20, 20,
@@ -37,7 +37,7 @@ protected:
         20, 20, 20, 20, 20, 20, 20, 20,
     };
 
-    const u_short WHT_PAWN_ENDGAME_TABLE[64] = {
+    const short WHT_PAWN_ENDGAME_TABLE[64] = {
         100, 100, 100, 100, 100, 100, 100, 100,
         80,  80,  80,  80,  80,  80,  80,  80,
         60,  60,  60,  60,  60,  60,  60,  60,
@@ -48,7 +48,7 @@ protected:
         0,   0,   0,   0,   0,   0,   0,   0
     };
 
-    const u_short BLK_PWN_ENDGAME_TABLE[64] = {
+    const short BLK_PWN_ENDGAME_TABLE[64] = {
         0,   0,   0,   0,   0,   0,   0,   0,
         0,   0,   0,   0,   0,   0,   0,   0,
         10,  10,  10,  10,  10,  10,  10,  10,
@@ -59,7 +59,7 @@ protected:
         100, 100, 100, 100, 100, 100, 100, 100
     };
 
-    const u_short WHT_KING_POS_TABLE[64] = {
+    const short WHT_KING_POS_TABLE[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -70,7 +70,7 @@ protected:
         10, 10, 10, 10, 10, 10, 10, 10,
     };
 
-    const u_short BLK_KING_POS_TABLE[64] = {
+    const short BLK_KING_POS_TABLE[64] = {
         10, 10, 10, 10, 10, 10, 10, 10,
         0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,
@@ -81,7 +81,7 @@ protected:
         0,  0,  0,  0,  0,  0,  0,  0,
     };
 
-    const u_short KING_ENDGAME_TABLE[64] = {
+    const short KING_ENDGAME_TABLE[64] = {
         0,  0,  0,  10, 10,  0,  0,  0,
         0,  10, 20, 30, 30, 20, 10,  0,
         0,  20, 40, 45, 45, 40, 20,  0,
@@ -92,7 +92,7 @@ protected:
         0,  0,  0,  10, 10,  0,  0,  0
     };
 
-    const u_short KNIGHT_POS_TABLE[64] = {
+    const short KNIGHT_POS_TABLE[64] = {
         0,  0,  0,  10, 10,  0,  0,  0,
         0,  10, 20, 30, 30, 20, 10,  0,
         0,  20, 40, 45, 45, 40, 20,  0,
@@ -103,7 +103,7 @@ protected:
         0,  0,  0,  10, 10,  0,  0,  0
     };
 
-    const u_short BISHOP_POS_TABLE[64] = {
+    const short BISHOP_POS_TABLE[64] = {
         50, 40, 30, 20, 20, 30, 40, 50,
         40, 30, 25, 20, 20, 25, 30, 40,
         30, 25, 20, 15, 15, 20, 25, 30,
@@ -114,7 +114,7 @@ protected:
         50, 40, 30, 20, 20, 30, 40, 50
     };
 
-    const u_short ROOK_POS_TABLE[64] = {
+    const short ROOK_POS_TABLE[64] = {
         30, 30, 30, 30, 30, 30, 30, 30,
         30, 30, 30, 30, 30, 30, 30, 30,
         10,  0,  0,  0,  0,  0,  0, 10,
@@ -125,7 +125,7 @@ protected:
         30, 30, 30, 30, 30, 30, 30, 30
     };
 
-    const u_short QUEEN_POS_TABLE[64] = {
+    const short QUEEN_POS_TABLE[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,

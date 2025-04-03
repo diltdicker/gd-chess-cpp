@@ -34,7 +34,7 @@ String ChessEngine::inputUCI(String command) {
 
 
 // extern "C" {
-//     const char* cppChessUciCall(const char* fen_pos, bool is_white, u_long time_limit_ms, u_short depth) {
+//     const char* cppChessUciCall(const char* fen_pos, bool is_white, u_long time_limit_ms, short depth) {
 //         String godot_input = String(fen_pos);
 //         std::cout << "Received command: " << godot_input.utf8().get_data() << std::endl;
 

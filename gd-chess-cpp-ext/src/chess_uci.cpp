@@ -27,6 +27,7 @@ extern "C" {
         }
     }
 
+    
 }
 
 ChessUCI::ChessUCI() {

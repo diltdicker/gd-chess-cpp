@@ -1,6 +1,4 @@
 #include "chess_logic.h"
-#include <stdexcept>
-#include <iostream>
 
 short ChessLogic::getSqureTopLeft(short square) const {
     return (square % 8 != 0 && square >= 8) ? square - 9 : -1;
@@ -216,6 +214,7 @@ ChessLogic::ChessLogic() {
     for (int i = 0; i < 64; ++i) {
         internalBoard[i] = {0, 0}; // Empty piece
     }
+    initializeZobrist();
 }
 
 ChessLogic::~ChessLogic() {
@@ -760,4 +759,61 @@ uint64_t ChessLogic::getKingMoveBitBoard(short color) const {
     }
 
     return kingMoves & emptySquares | opponentBitboard;
+}
+
+void ChessLogic::initializeZobrist() {
+    std::mt19937_64 rng(123456); // Random number generator with a fixed seed
+    std::uniform_int_distribution<uint64_t> dist;
+
+    // Initialize Zobrist table for pieces on squares
+    for (int square = 0; square < 64; ++square) {
+        for (int piece = 0; piece < 12; ++piece) { // 6 piece types * 2 colors
+            zobristTable[square][piece] = dist(rng);
+        }
+    }
+
+    // Initialize Zobrist values for castling rights
+    for (int i = 0; i < 4; ++i) {
+        zobristCastling[i] = dist(rng);
+    }
+
+    // Initialize Zobrist values for en passant files
+    for (int i = 0; i < 8; ++i) {
+        zobristEnPassant[i] = dist(rng);
+    }
+
+    // Initialize Zobrist value for the player's turn
+    zobristTurn = dist(rng);
+}
+
+uint64_t ChessLogic::hashPosition(bool isWhiteTurn) const {
+    uint64_t hash = 0;
+
+    // Hash the pieces on the board
+    for (int square = 0; square < 64; ++square) {
+        const chessPiece &piece = internalBoard[square];
+        if (piece.type != 0) { // If the square is not empty
+            int pieceIndex = (piece.type - 1) + (piece.color - 1) * 6; // Map to 0-11
+            hash ^= zobristTable[square][pieceIndex];
+        }
+    }
+
+    // Hash castling rights
+    if (whiteKCastle) hash ^= zobristCastling[0];
+    if (whiteQCastle) hash ^= zobristCastling[1];
+    if (blackKCastle) hash ^= zobristCastling[2];
+    if (blackQCastle) hash ^= zobristCastling[3];
+
+    // Hash en passant square
+    if (enPassantSquare != -1) {
+        int file = enPassantSquare % 8; // Get the file of the en passant square
+        hash ^= zobristEnPassant[file];
+    }
+
+    // Hash the player's turn
+    if (isWhiteTurn) {
+        hash ^= zobristTurn;
+    }
+
+    return hash;
 }

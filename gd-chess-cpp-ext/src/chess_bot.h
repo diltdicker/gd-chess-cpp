@@ -4,6 +4,10 @@
 #include <vector>
 #include <chrono>
 #include <iostream>
+#include <regex>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "chess_logic.h"
 #include "move_strategy.h"
 #include "eval_strategy.h"
@@ -56,8 +60,6 @@ public:
 
     ChessLogic::Move iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
-    ChessLogic::Move getBestMove(std::vector<ChessLogic::Move> &moves);
-
     bool validateMove(const std::string &move);
 
     void setMoveStrategy(const std::string &strategy) {
@@ -97,6 +99,9 @@ public:
     void setFEN(const std::string &fen);
 
     std::string getFEN() const;
+
+    bool isCheck() const;
+    bool isCheckMate();
 
 protected:
 

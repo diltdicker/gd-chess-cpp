@@ -5,6 +5,12 @@
 #include <string>
 #include <stack>
 #include <limits>
+#include <cstdint>
+#include <unordered_map>
+#include <stdexcept>
+#include <iostream>
+#include <functional>
+#include <random>
 
 class ChessLogic {
 public:
@@ -101,12 +107,26 @@ struct chessPiece
 
     std::vector<short> bitboardToSquares(uint64_t bitboard) const;
 
+    uint64_t hashPosition(bool isWhiteTurn) const;
+
+    void initializeZobrist();
+
+    std::unordered_map<uint64_t, int> transpositionTable;
+
 protected:
 
     chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
 
     std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
-    
+
+private:
+    uint64_t zobristTable[64][12]; // Random values for pieces on squares
+    uint64_t zobristCastling[4];   // Random values for castling rights
+    uint64_t zobristEnPassant[8];  // Random values for en passant files
+    uint64_t zobristTurn;          // Random value for the player's turn
+
+
 };
+
 
 #endif // CHESS_LOGIC_H

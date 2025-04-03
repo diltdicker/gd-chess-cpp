@@ -47,11 +47,20 @@ int BestEvalMoveStrategy::minimax(ChessLogic &logic, EvaluationStrategy* evalStr
         return evalStrategy->evaluate(logic.getChessBoard()) * (isWhite ? 1 : -1);
     }
 
+    // Generate a hash for the current position
+    uint64_t positionHash = logic.hashPosition(isWhite);
+
+    // Check the transposition table for the current position
+    if (logic.transpositionTable.find(positionHash) != logic.transpositionTable.end()) {
+        return logic.transpositionTable[positionHash]; // Return the cached score
+    }
+
     std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
     if (legalMoves.empty()) {
         return evalStrategy->evaluate(logic.getChessBoard()) * (isWhite ? 1 : -1);
     }
 
+    
     int bestScore = std::numeric_limits<int>::min();
 
     for (const auto &move : legalMoves) {
@@ -69,6 +78,8 @@ int BestEvalMoveStrategy::minimax(ChessLogic &logic, EvaluationStrategy* evalStr
             break; // Exit early if the time limit is exceeded
         }
     }
+
+    logic.transpositionTable[positionHash] = bestScore; // Store the score in the transposition table
 
     return bestScore;
 }

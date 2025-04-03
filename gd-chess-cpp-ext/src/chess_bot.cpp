@@ -1,8 +1,4 @@
 #include "chess_bot.h"
-#include <regex>
-#include <cstdio>
-#include <cstdlib>
-
 
 ChessBot::ChessBot() {
     moveStrategy = new BestEvalMoveStrategy();
@@ -191,6 +187,7 @@ std::string ChessBot::getFEN() const {
 
 ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
     ChessLogic::Move bestMove = ChessLogic::Move();
+    botLogic.transpositionTable.clear(); // Clear the transposition table before each search
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
@@ -200,4 +197,12 @@ ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chro
     }
 
     return bestMove;
+}
+
+bool ChessBot::isCheck() const {
+    return botLogic.isInCheck(isWhiteTurn);
+}
+
+bool ChessBot::isCheckMate() {
+    return botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty();
 }

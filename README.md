@@ -18,6 +18,12 @@ Install scons for building
 sudo apt-get install scons
 ```
 
+Pull submodule godot-cpp
+
+```shell
+git submodule update --recursive
+```
+
 ### Windows builds
 
 Install MinGW for windows platforms
@@ -92,3 +98,7 @@ Too lazy to implement
 ### IOS
 
 Too lazy to implement
+
+
+## WebDemo
+steal from this guy: https://github.com/binaryguru101/Chess

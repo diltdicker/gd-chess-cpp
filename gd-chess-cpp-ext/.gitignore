@@ -2,4 +2,5 @@
 
 .sconsign.dblite
 
-src/*.os
+src/**/*.os
+src/**/*.o

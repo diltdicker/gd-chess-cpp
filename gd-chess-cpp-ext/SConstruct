@@ -4,7 +4,7 @@ import sys
 
 env = SConscript("godot-cpp/SConstruct")
 
-output_dir = "../addons/bin/"
+output_dir = "../addons/gd_chess_cpp/bin/"
 
 # For reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -20,7 +20,7 @@ sources = Glob("src/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "{}libgdexample.{}.{}.framework/libgdexample.{}.{}".format(
+        "{}libgd_chess.{}.{}.framework/libgd_chess.{}.{}".format(
             output_dir, env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
@@ -28,17 +28,17 @@ if env["platform"] == "macos":
 elif env["platform"] == "ios":
     if env["ios_simulator"]:
         library = env.StaticLibrary(
-            "{}libgdexample.{}.{}.simulator.a".format(output_dir, env["platform"], env["target"]),
+            "{}libgd_chess.{}.{}.simulator.a".format(output_dir, env["platform"], env["target"]),
             source=sources,
         )
     else:
         library = env.StaticLibrary(
-            "{}libgdexample.{}.{}.a".format(output_dir, env["platform"], env["target"]),
+            "{}libgd_chess.{}.{}.a".format(output_dir, env["platform"], env["target"]),
             source=sources,
         )
 else:
     library = env.SharedLibrary(
-        "{}libgdexample{}{}".format(output_dir, env["suffix"], env["SHLIBSUFFIX"]),
+        "{}libgd_chess{}{}".format(output_dir, env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 

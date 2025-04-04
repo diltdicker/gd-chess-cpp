@@ -103,6 +103,10 @@ public:
     bool isCheck() const;
     bool isCheckMate();
 
+    std::vector<ChessLogic::Move> getMoveHistory() const;
+
+    std::vector<std::string> translateMoveHistory() const;
+
 protected:
 
     bool isWhiteTurn = true;

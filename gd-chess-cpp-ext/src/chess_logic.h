@@ -113,6 +113,8 @@ struct chessPiece
 
     std::unordered_map<uint64_t, int> transpositionTable;
 
+    std::vector<Move> getMoveHistory() const;
+
 protected:
 
     chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces

@@ -206,3 +206,15 @@ bool ChessBot::isCheck() const {
 bool ChessBot::isCheckMate() {
     return botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty();
 }
+
+std::vector<ChessLogic::Move> ChessBot::getMoveHistory() const {
+    return botLogic.getMoveHistory();
+}
+
+std::vector<std::string> ChessBot::translateMoveHistory() const {
+    std::vector<std::string> translatedMoves;
+    for (const auto &move : botLogic.getMoveHistory()) {
+        translatedMoves.push_back(botLogic.translateMoveToString(move));
+    }
+    return translatedMoves;
+}

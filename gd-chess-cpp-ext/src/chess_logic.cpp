@@ -817,3 +817,15 @@ uint64_t ChessLogic::hashPosition(bool isWhiteTurn) const {
 
     return hash;
 }
+
+std::vector<ChessLogic::Move> ChessLogic::getMoveHistory() const {
+    std::vector<Move> moveHistory;
+    std::stack<Move> tempStack = moveStack;
+
+    while (!tempStack.empty()) {
+        moveHistory.push_back(tempStack.top());
+        tempStack.pop();
+    }
+
+    return moveHistory;
+}

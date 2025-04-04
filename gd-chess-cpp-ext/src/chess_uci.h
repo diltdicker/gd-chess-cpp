@@ -22,12 +22,17 @@ extern "C" {
     void destroyChessUci(void * instance);
     const char * inputCommand(void * uci_instance, const char * command);
 
-    const char * inputFEN(void * uci_instance, const char * fen);
-    const char * getFEN(void * uci_instance);
+    void inputFEN(void * uci_instance, const char * fen);
+
+    const char * expotFEN(void * uci_instance);
+
+    const char ** exportPGN(void * uci_instance);
 
     const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
 
-    const char * validateMove(void * uci_instance, const char * move);
+    bool validateMove(void * uci_instance, const char * move);
+
+    void makeMove(void * uci_instance, const char * move);
 
     void setOption(void * uci_instance, const char * option, const char * value);
 }
@@ -46,13 +51,13 @@ public:
 
     char * handleUciCommand(const char * command);
 
-    void fenBoardUpdate(const char * fen);
-
     void importFEN(const char * fen);
     
     char * exportFEN();
 
     bool validateMove(const char * move);
+
+    void makeMove(const char * move);
 
     char * getBotMove(short searchDepth, int timeLimit);
 
@@ -60,8 +65,11 @@ public:
 
     char * getEval();
 
+    char ** exportMoveHistory();
+
 protected:
 
+    ChessBot * chessBot = nullptr;
 
 
 private:

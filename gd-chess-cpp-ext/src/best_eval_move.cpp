@@ -44,7 +44,7 @@ int BestEvalMoveStrategy::minimax(ChessLogic &logic, EvaluationStrategy* evalStr
 
     // Base case: if depth is 0 or no legal moves are available
     if (depth == 0) {
-        return evalStrategy->evaluate(logic.getChessBoard()) * (isWhite ? 1 : -1);
+        return evalStrategy->evaluate(&logic, isWhite) * (isWhite ? 1 : -1);
     }
 
     // Generate a hash for the current position
@@ -57,7 +57,7 @@ int BestEvalMoveStrategy::minimax(ChessLogic &logic, EvaluationStrategy* evalStr
 
     std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
     if (legalMoves.empty()) {
-        return evalStrategy->evaluate(logic.getChessBoard()) * (isWhite ? 1 : -1);
+        return evalStrategy->evaluate(&logic, isWhite) * (isWhite ? 1 : -1);
     }
 
     

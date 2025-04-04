@@ -6,19 +6,16 @@
 extern "C" {
 
     // exported functions with C linkage that can be called from other languages
-    void * ChessUci_Create() EXPORT_SYMBOL;
-    void ChessUci_Destroy(void * instance) EXPORT_SYMBOL;
-    const char * ChessUci_Command(void * uci_instance, const char * command) EXPORT_SYMBOL;
 
-    void * ChessUci_Create() {
+    void * createChessUci() {
         return new(std::nothrow) ChessUCI;
     }
 
-    void ChessUci_Destroy(void * instance) {
+    void destroyChessUci(void * instance) {
         delete static_cast<ChessUCI *>(instance);
     }
 
-    const char * ChessUci_Command(void * uci_instance, const char * command) {
+    const char * inputCommand(void * uci_instance, const char * command) {
         printf("Received command: %s\n", command);
         if (uci_instance) {
             return static_cast<ChessUCI *>(uci_instance)->handleUciCommand(command);

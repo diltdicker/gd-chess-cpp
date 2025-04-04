@@ -16,6 +16,22 @@
 #include <string>
 #include "chess_bot.h"
 
+extern "C" {
+    // exported functions with C linkage that can be called from other languages
+    void * createChessUci();
+    void destroyChessUci(void * instance);
+    const char * inputCommand(void * uci_instance, const char * command);
+
+    const char * inputFEN(void * uci_instance, const char * fen);
+    const char * getFEN(void * uci_instance);
+
+    const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
+
+    const char * validateMove(void * uci_instance, const char * move);
+
+    void setOption(void * uci_instance, const char * option, const char * value);
+}
+
 class ChessUCI {
 
 public:
@@ -32,7 +48,9 @@ public:
 
     void fenBoardUpdate(const char * fen);
 
-    void setFENBoard(const char * fen);
+    void importFEN(const char * fen);
+    
+    char * exportFEN();
 
     bool validateMove(const char * move);
 

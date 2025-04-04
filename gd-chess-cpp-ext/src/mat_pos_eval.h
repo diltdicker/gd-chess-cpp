@@ -19,8 +19,10 @@ public:
     };
 
     // Evaluate the board position and return a score
-    int evaluate(const ChessLogic::chessPiece* board) override {
-        return materialEvalStrategy->evaluate(board) + positionEvalStrategy->evaluate(board);
+    int evaluate(const ChessLogic * chessBoard, bool whitesTurn) override {
+        int materialScore = materialEvalStrategy->evaluate(chessBoard, whitesTurn);
+        int positionScore = positionEvalStrategy->evaluate(chessBoard, whitesTurn);
+        return (std::abs(materialScore) == std::numeric_limits<int>::max()) ? materialScore : materialScore + positionScore;
     }
 
 protected:

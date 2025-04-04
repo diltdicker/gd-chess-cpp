@@ -10,7 +10,7 @@ public:
     PositionEvalStrategy() = default;
 
     // Evaluate the board position and return a score
-    int evaluate(const ChessLogic::chessPiece* board) override;
+    int evaluate(const ChessLogic * chessBoard, bool whitesTurn) override;
 
     bool isEndgame(const ChessLogic::chessPiece* board);
 

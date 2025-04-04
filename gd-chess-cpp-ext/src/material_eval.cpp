@@ -1,8 +1,9 @@
 #include "material_eval.h"
 
 
-int MaterialEvalStrategy::evaluate(const ChessLogic::chessPiece* board) {
+int MaterialEvalStrategy::evaluate(const ChessLogic * chessBoard, bool whitesTurn) {
     int materialScore = 0;
+    const auto *board = chessBoard->getChessBoard();
 
     for (int i = 0; i < 64; ++i) {
         const auto &piece = board[i];

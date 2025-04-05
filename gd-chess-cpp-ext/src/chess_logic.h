@@ -119,7 +119,7 @@ struct chessPiece
 
     std::vector<short> bitboardToSquares(uint64_t bitboard) const;
 
-    std::string getBitboardString(uint64_t bitboard) const;
+    std::string printBitBoard(uint64_t bitboard) const;
 
     std::string printBoard() const;
 
@@ -132,6 +132,8 @@ struct chessPiece
     std::vector<Move> getMoveHistory() const;
 
     std::string squareToString(short square) const;
+
+    short stringToSquare(const std::string &squareStr) const;
 
 protected:
 

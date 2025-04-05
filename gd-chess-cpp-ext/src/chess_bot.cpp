@@ -7,20 +7,6 @@ ChessBot::ChessBot() {
     evalStrategy = new MatPosEvalStrategy();
     currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
     this->setFEN(DEFAULT_FEN);
-    DEBUG_PRINT("actual board " << botLogic.printBoard());
-    DEBUG_PRINT("pieces correct bitboard: white " << botLogic.getBitboardString(botLogic.getColorBitBoard(1)));
-    DEBUG_PRINT("pieces correct bitboard: black " << botLogic.getBitboardString(botLogic.getColorBitBoard(2)));
-
-    DEBUG_PRINT("moves " << botLogic.printLegalMoves(botLogic.getLegalMoves(isWhiteTurn)));
-
-
-    DEBUG_PRINT("moves " << botLogic.printLegalMoves(botLogic.getLegalMoves(!isWhiteTurn)));
-
-    DEBUG_PRINT("current turn: " << (isWhiteTurn ? "white" : "black"));
-
-    DEBUG_PRINT("current FEN: " << getFEN());
-
-    DEBUG_PRINT("");
 }
 
 // Destructor that ensures the move strategy is deleted
@@ -91,7 +77,7 @@ void ChessBot::applyMove(const std::string &move) {
     }
 
     // Update the full move number
-    if (!isWhiteTurn) {
+    if (isWhiteTurn) {
         fullMoveNumber++;
     }
 }
@@ -143,7 +129,7 @@ void ChessBot::setFEN(const std::string &fen) {
         botLogic.blackKCastle = castling.find('k') != std::string::npos;
 
         if (enPassant != "-") {
-            botLogic.enPassantSquare = (enPassant[0] - 'a') + ((enPassant[1] - '1') * 8);
+            botLogic.enPassantSquare = botLogic.stringToSquare(enPassant);
         } else {
             botLogic.enPassantSquare = -1;
         }
@@ -161,7 +147,7 @@ void ChessBot::setFEN(const std::string &fen) {
     }
 }
 
-std::string ChessBot::getFEN() const {
+const std::string ChessBot::getFEN() {
     std::string fen;
     const ChessLogic::chessPiece* board = botLogic.getChessBoard();
     const char pieceLookup[7] = {'0', 'p', 'n', 'b', 'r', 'q', 'k'};
@@ -197,11 +183,9 @@ std::string ChessBot::getFEN() const {
        std::string(botLogic.blackKCastle ? "k" : "-") +
        std::string(botLogic.whiteQCastle ? "q" : "-");
     fen += " ";
-    fen += (botLogic.enPassantSquare != -1) ? std::to_string(botLogic.enPassantSquare) : "-";
+    fen += (botLogic.enPassantSquare != -1) ? botLogic.squareToString(botLogic.enPassantSquare) : "-";
     fen += " ";
     fen += std::to_string(halfMoveClock) + " " + std::to_string(fullMoveNumber);
-
-    // DEBUG_PRINT("FEN: " << fen);
 
     return fen;
 }
@@ -212,12 +196,14 @@ ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chro
     botLogic.transpositionTable.clear(); // Clear the transposition table before each search
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
+        DEBUG_PRINT("Searching at depth: " << depth);
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
             break; // Stop if time limit is reached
         }
     }
-
+    DEBUG_PRINT("Best move found: " << botLogic.translateMoveToString(bestMove));
+    DEBUG_PRINT("Best move score: " << evalStrategy->evaluate(&botLogic, isWhiteTurn));
     return bestMove;
 }
 
@@ -267,8 +253,6 @@ std::string ChessBot::getAvailableMoves() {
     if (moves.empty()) {
         moves = "No legal moves available.";
     }
-    // std::cout << "Moves: " << moves << std::endl;
-    // printf("Available moves: %s\n", moves.c_str());
     return moves;
 }
 

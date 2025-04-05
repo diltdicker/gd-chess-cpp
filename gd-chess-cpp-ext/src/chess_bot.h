@@ -24,10 +24,10 @@
 #define DEBUG_PRINT(x)
 #endif
 
-class ChessBot {
+class ChessBot
+{
 
 protected:
-
     // move strategies
     const std::string BEST_EVAL_MOVE_STRATEGY = "best_eval_move";
     const std::string RANDOM_STRATEGY = "random";
@@ -38,12 +38,12 @@ protected:
     const std::string MAT_POS_EVAL_STRATEGY = "mat_pos_eval";
     const std::string NO_EVAL_STRATEGY = "no_eval";
 
-    MoveStrategy * moveStrategy = nullptr;
-    EvaluationStrategy * evalStrategy = nullptr;
+    MoveStrategy *moveStrategy = nullptr;
+    EvaluationStrategy *evalStrategy = nullptr;
 
 public:
-
-    struct moveEvaluation {
+    struct moveEvaluation
+    {
         ChessLogic::Move move;
         int moveScore;
     };
@@ -58,10 +58,11 @@ public:
 
     void applyMove(const std::string &move);
 
-    std::string getBestMove(short searchDepth, int timeLimit) {
-        // std::cout << "Debug: " << "test message" << std::endl;
-        // DEBUG_PRINT("test");
+    std::string getBestMove(short searchDepth, int timeLimit)
+    {
+        DEBUG_PRINT("Searching for best move...");
         DEBUG_PRINT(getAvailableMoves());
+        DEBUG_PRINT("try this");
         std::chrono::time_point<std::chrono::steady_clock> stopTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeLimit);
         return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, stopTime));
     }
@@ -70,63 +71,85 @@ public:
 
     bool validateMove(const std::string &move);
 
-    void setMoveStrategy(const std::string &strategy) {
-        if (moveStrategy != nullptr) {
+    void setMoveStrategy(const std::string &strategy)
+    {
+        if (moveStrategy != nullptr)
+        {
             delete moveStrategy;
             currentMoveStrategy = "";
         }
 
-        if (strategy == RANDOM_STRATEGY) {
+        if (strategy == RANDOM_STRATEGY)
+        {
             moveStrategy = new RandomMoveStrategy();
             currentMoveStrategy = RANDOM_STRATEGY;
-        } else if (strategy == BEST_EVAL_MOVE_STRATEGY) {
+        }
+        else if (strategy == BEST_EVAL_MOVE_STRATEGY)
+        {
             moveStrategy = new BestEvalMoveStrategy();
             currentMoveStrategy = BEST_EVAL_MOVE_STRATEGY;
-        } else {
+        }
+        else
+        {
             std::cerr << "Error: Invalid move strategy: " << strategy << std::endl;
             abort(); // Invalid strategy
         }
     }
 
-    void setEvalStrategy(const std::string &strategy) {
-        if (evalStrategy != nullptr) {
+    void setEvalStrategy(const std::string &strategy)
+    {
+        if (evalStrategy != nullptr)
+        {
             delete evalStrategy;
             currentEvalStrategy = "";
         }
 
-        if (strategy == NO_EVAL_STRATEGY) {
+        if (strategy == NO_EVAL_STRATEGY)
+        {
             evalStrategy = new NoEvalStrategy();
-        } else if (strategy == POSITION_EVAL_STRATEGY) {
+        }
+        else if (strategy == POSITION_EVAL_STRATEGY)
+        {
             evalStrategy = new PositionEvalStrategy();
             currentEvalStrategy = POSITION_EVAL_STRATEGY;
-        } else if (strategy == MATERIAL_EVAL_STRATEGY) {
+        }
+        else if (strategy == MATERIAL_EVAL_STRATEGY)
+        {
             evalStrategy = new MaterialEvalStrategy();
             currentEvalStrategy = MATERIAL_EVAL_STRATEGY;
-        } else if (strategy == MAT_POS_EVAL_STRATEGY) {
+        }
+        else if (strategy == MAT_POS_EVAL_STRATEGY)
+        {
             evalStrategy = new MatPosEvalStrategy();
             currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
-        } else {
+        }
+        else
+        {
             std::cerr << "Error: Invalid evaluation strategy: " << strategy << std::endl;
             abort(); // Invalid strategy
         }
     }
 
-    std::vector<std::string> listMoveStrategies() {
-        return { RANDOM_STRATEGY, BEST_EVAL_MOVE_STRATEGY };
+    std::vector<std::string> listMoveStrategies()
+    {
+        return {RANDOM_STRATEGY, BEST_EVAL_MOVE_STRATEGY};
     }
 
-    std::vector<std::string> listEvalStrategies() {
-        return { NO_EVAL_STRATEGY, POSITION_EVAL_STRATEGY, MATERIAL_EVAL_STRATEGY, MAT_POS_EVAL_STRATEGY };
+    std::vector<std::string> listEvalStrategies()
+    {
+        return {NO_EVAL_STRATEGY, POSITION_EVAL_STRATEGY, MATERIAL_EVAL_STRATEGY, MAT_POS_EVAL_STRATEGY};
     }
 
     void setFEN(const std::string &fen);
 
-    std::string getFEN() const;
+    const std::string getFEN();
 
     bool isCheck() const;
-    
-    short getCheckmate() {
-        if (botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty()) {
+
+    short getCheckmate()
+    {
+        if (botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty())
+        {
             return isWhiteTurn ? 2 : 1; // 2 for black wins, 1 for white wins
         }
         return 0; // No checkmate
@@ -140,11 +163,13 @@ public:
 
     bool isThreefoldRepetition() const;
 
-    std::string getCurrentMoveStrategy() const {
+    std::string getCurrentMoveStrategy() const
+    {
         return currentMoveStrategy;
     }
 
-    std::string getCurrentEvalStrategy() const {
+    std::string getCurrentEvalStrategy() const
+    {
         return currentEvalStrategy;
     }
 
@@ -153,19 +178,17 @@ public:
     const std::string whosTurn() const;
 
 protected:
-
     bool isWhiteTurn = true;
 
     int halfMoveClock = 0;
     int fullMoveNumber = 1;
 
-    bool isWhite = true;
-
     std::string currentMoveStrategy;
-    std::string currentEvalStrategy;;
+    std::string currentEvalStrategy;
+    ;
 
-    ChessLogic botLogic;;
-
+    ChessLogic botLogic;
+    ;
 };
 
 #endif

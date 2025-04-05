@@ -118,9 +118,10 @@ void ChessUCI::importFEN(const char * fen) {
 }
 
 char * ChessUCI::exportFEN() {
-    // Export the current FEN string from the chess bot
     if (chessBot) {
-        return chessBot ? const_cast<char *>(chessBot->getFEN().c_str()) : nullptr;
+        static char fenBuffer[256]; // Buffer to hold the FEN string
+        std::strncpy(fenBuffer, chessBot->getFEN().c_str(), sizeof(fenBuffer) - 1);
+        return const_cast<char *>(fenBuffer);
     }
     return nullptr;
 }

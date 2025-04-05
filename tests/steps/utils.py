@@ -24,19 +24,25 @@ def then_bot_move(context, move):
     """
     Verify that the bot plays the expected move.
     """
-    bot_move = context.bot.get_bot_move(12, 1000)
+    # print(context.board)
+    bot_move = context.bot.get_bot_move(1, 1000)
+    print(context.bot.export_fen())
     print(f"Bot move: {bot_move}")
+    # context.bot.make_move("d8h4")
+    # print(context.bot.export_fen())
     uci_moves = [m.uci() for m in context.board.legal_moves]
-    if Move.from_uci(bot_move) in uci_moves:
-        context.board.push(move)
-        context.bot.make_move(move)
-        if bot_move != move:
-            print("Current board state:")
-            print(context.board)
-    else:
-        print(f"Invalid move: {move}")
-        print(Move.from_uci(bot_move))
-        print(uci_moves)
-        print(context.bot.export_fen())
-        # context.bot.debug_bot()
+    print(f"Legal moves: {uci_moves}")
+    print(context.board)
+    # if Move.from_uci(bot_move) in uci_moves:
+    #     context.board.push(move)
+    #     context.bot.make_move(move)
+    #     if bot_move != move:
+    #         print("Current board state:")
+    #         print(context.board)
+    # else:
+    #     print(f"Invalid move: {move}")
+    #     print(Move.from_uci(bot_move))
+    #     print(uci_moves)
+    #     print(context.bot.export_fen())
+    #     # context.bot.debug_bot()
     assert bot_move == move, f"Expected move: {move}, but got: {bot_move}"

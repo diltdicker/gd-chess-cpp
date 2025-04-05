@@ -1,9 +1,26 @@
 #include "chess_bot.h"
 
 ChessBot::ChessBot() {
+    botLogic = ChessLogic();
     moveStrategy = new BestEvalMoveStrategy();
+    currentMoveStrategy = BEST_EVAL_MOVE_STRATEGY;
     evalStrategy = new MatPosEvalStrategy();
+    currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
     this->setFEN(DEFAULT_FEN);
+    DEBUG_PRINT("actual board " << botLogic.printBoard());
+    DEBUG_PRINT("pieces correct bitboard: white " << botLogic.getBitboardString(botLogic.getColorBitBoard(1)));
+    DEBUG_PRINT("pieces correct bitboard: black " << botLogic.getBitboardString(botLogic.getColorBitBoard(2)));
+
+    DEBUG_PRINT("moves " << botLogic.printLegalMoves(botLogic.getLegalMoves(isWhiteTurn)));
+
+
+    DEBUG_PRINT("moves " << botLogic.printLegalMoves(botLogic.getLegalMoves(!isWhiteTurn)));
+
+    DEBUG_PRINT("current turn: " << (isWhiteTurn ? "white" : "black"));
+
+    DEBUG_PRINT("current FEN: " << getFEN());
+
+    DEBUG_PRINT("");
 }
 
 // Destructor that ensures the move strategy is deleted
@@ -93,13 +110,16 @@ void ChessBot::setFEN(const std::string &fen) {
         int fullMove = std::stoi(match[6].str());
 
         for (size_t i = 0; i < 64; i++) {
-            chessBoard[i] = {0, 0};
+            chessBoard[i] = ChessLogic::chessPiece(0, 0); // Initialize all squares to empty
         }
 
         size_t index = 0;
         for (char c : board) {
             if (isdigit(c)) {
                 index += c - '0';
+            } else if (c == '/') {
+                // Skip the slash
+
             } else {
                 short color = (isupper(c)) ? 1 : 2;
                 short type = 0;
@@ -111,7 +131,7 @@ void ChessBot::setFEN(const std::string &fen) {
                     case 'q': type = 5; break;
                     case 'k': type = 6; break;
                 }
-                chessBoard[index] = {color, type};
+                chessBoard[index] = ChessLogic::chessPiece(color, type);
                 index++;
             }
         }
@@ -170,7 +190,7 @@ std::string ChessBot::getFEN() const {
     }
 
     fen += " ";
-    fen += (isWhiteTurn ? " w " : " b ");
+    fen += (isWhiteTurn ? "w" : "b");
     fen += " ";
     fen += std::string(botLogic.whiteKCastle ? "K" : "-") +
        std::string(botLogic.whiteQCastle ? "Q" : "-") +
@@ -180,6 +200,8 @@ std::string ChessBot::getFEN() const {
     fen += (botLogic.enPassantSquare != -1) ? std::to_string(botLogic.enPassantSquare) : "-";
     fen += " ";
     fen += std::to_string(halfMoveClock) + " " + std::to_string(fullMoveNumber);
+
+    // DEBUG_PRINT("FEN: " << fen);
 
     return fen;
 }
@@ -203,10 +225,6 @@ bool ChessBot::isCheck() const {
     return botLogic.isInCheck(isWhiteTurn);
 }
 
-bool ChessBot::isCheckMate() {
-    return botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty();
-}
-
 std::vector<ChessLogic::Move> ChessBot::getMoveHistory() const {
     return botLogic.getMoveHistory();
 }
@@ -217,4 +235,43 @@ std::vector<std::string> ChessBot::translateMoveHistory() const {
         translatedMoves.push_back(botLogic.translateMoveToString(move));
     }
     return translatedMoves;
+}
+
+bool ChessBot::isThreefoldRepetition() const {
+    std::unordered_map<uint64_t, int> positionCount;
+    for (const auto &move : botLogic.getMoveHistory()) {
+        uint64_t hash = botLogic.hashPosition(isWhiteTurn);
+        positionCount[hash]++;
+        if (positionCount[hash] >= 3) {
+            return true; // Threefold repetition detected
+        }
+    }
+    return false;
+}
+
+bool ChessBot::isStaleMate() {
+    return (!botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty()) || 
+        isThreefoldRepetition() || halfMoveClock >= 100;
+}
+
+std::string ChessBot::getAvailableMoves() {
+    std::vector<ChessLogic::Move> legalMoves = botLogic.getLegalMoves(isWhiteTurn);
+    std::string moves; // static needed to keep the string alive after function returns
+    for (const auto &move : legalMoves) {
+        moves += botLogic.translateMoveToString(move) + ", ";
+    }
+    if (!moves.empty()) {
+        moves.pop_back(); // Remove the last space
+        moves.pop_back(); // Remove the last comma
+    }
+    if (moves.empty()) {
+        moves = "No legal moves available.";
+    }
+    // std::cout << "Moves: " << moves << std::endl;
+    // printf("Available moves: %s\n", moves.c_str());
+    return moves;
+}
+
+const std::string ChessBot::whosTurn() const {
+    return isWhiteTurn ? "white" : "black";
 }

@@ -11,6 +11,13 @@
 #include <iostream>
 #include <functional>
 #include <random>
+#include <bitset>
+
+#ifdef DEBUG
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#else
+#define DEBUG_PRINT(x)
+#endif
 
 class ChessLogic {
 public:
@@ -28,6 +35,9 @@ struct chessPiece
         }
         return *this;
     }
+
+    // Constructor for chessPiece
+    chessPiece(short color = 0, short type = 0) : color(color), type(type) {}
 };
 
     // Represents a move in chess (e.g., "e2e4")
@@ -59,6 +69,8 @@ struct chessPiece
 
     // Get all legal moves for the current board position
     std::vector<Move> getLegalMoves(bool isWhite);
+
+    std::string printLegalMoves(const std::vector<Move> moves) const;
 
     bool isMoveLegal(const Move &move);
 
@@ -96,8 +108,8 @@ struct chessPiece
     // Helper methods for move generation and evaluation
     bool isMovePsuedoLegal(const Move &move) const;
 
+    uint64_t getColorBitBoard(short color) const;
     uint64_t getPieceBitBoard(short color, short piece) const;
-    uint64_t getPieceBitBoard(short color) const;
     uint64_t getPawnMoveBitBoard(short color) const;
     uint64_t getKnightMoveBitBoard(short color) const;
     uint64_t getBishopMoveBitBoard(short color) const;
@@ -107,6 +119,10 @@ struct chessPiece
 
     std::vector<short> bitboardToSquares(uint64_t bitboard) const;
 
+    std::string getBitboardString(uint64_t bitboard) const;
+
+    std::string printBoard() const;
+
     uint64_t hashPosition(bool isWhiteTurn) const;
 
     void initializeZobrist();
@@ -114,6 +130,8 @@ struct chessPiece
     std::unordered_map<uint64_t, int> transpositionTable;
 
     std::vector<Move> getMoveHistory() const;
+
+    std::string squareToString(short square) const;
 
 protected:
 

@@ -18,6 +18,10 @@ output_dir = "../addons/gd_chess_cpp/bin/"
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
 
+if env["target"] == "template_debug":
+    env.Append(CXXFLAGS=["-DDEBUG"])
+print("CXXFLAGS:", env['CXXFLAGS'])
+
 if env["platform"] == "macos":
     library = env.SharedLibrary(
         "{}libgd_chess.{}.{}.framework/libgd_chess.{}.{}".format(

@@ -13,28 +13,42 @@
 #ifndef CHESS_UCI_H
 #define CHESS_UCI_H
 
+#ifdef DEBUG
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#else
+#define DEBUG_PRINT(x)
+#endif
+
 #include <string>
 #include "chess_bot.h"
 
 extern "C" {
     // exported functions with C linkage that can be called from other languages
-    void * createChessUci();
-    void destroyChessUci(void * instance);
-    const char * inputCommand(void * uci_instance, const char * command);
+    EXPORT_SYMBOL void * createChessUci();
 
-    void inputFEN(void * uci_instance, const char * fen);
+    EXPORT_SYMBOL void destroyChessUci(void * instance);
 
-    const char * expotFEN(void * uci_instance);
+    EXPORT_SYMBOL const char * inputCommand(void * uci_instance, const char * command);
 
-    const char ** exportPGN(void * uci_instance);
+    EXPORT_SYMBOL void inputFEN(void * uci_instance, const char * fen);
 
-    const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
+    EXPORT_SYMBOL const char * exportFEN(void * uci_instance);
 
-    bool validateMove(void * uci_instance, const char * move);
+    EXPORT_SYMBOL char ** getMoveHistoryPtr(void * uci_instance);
 
-    void makeMove(void * uci_instance, const char * move);
+    EXPORT_SYMBOL void freeMoveHistoryPtr(void * uci_instance, char **moveHistory);
 
-    void setOption(void * uci_instance, const char * option, const char * value);
+    EXPORT_SYMBOL const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
+
+    EXPORT_SYMBOL bool validateMove(void * uci_instance, const char * move);
+
+    EXPORT_SYMBOL void makeMove(void * uci_instance, const char * move);
+
+    EXPORT_SYMBOL void setOption(void * uci_instance, const char * option, const char * value);
+
+    EXPORT_SYMBOL short getGameResult(void * uci_instance);
+
+    EXPORT_SYMBOL const char * debugBot(void * uci_instance, const char * property);
 }
 
 class ChessUCI {
@@ -65,7 +79,14 @@ public:
 
     char * getEval();
 
-    char ** exportMoveHistory();
+    char ** getMoveHistory();
+
+    void freeMoveHistory(char **moveHistory);
+
+    // returns 1 if a check, 2 if white wins, 3 if black wins, 4 if draw, 0 if no result
+    short getGameResult();
+
+    char * debugBot(const char * property);
 
 protected:
 

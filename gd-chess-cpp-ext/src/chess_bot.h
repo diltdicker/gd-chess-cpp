@@ -18,6 +18,11 @@
 #include "position_eval.h"
 #include "mat_pos_eval.h"
 
+#ifdef DEBUG
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#else
+#define DEBUG_PRINT(x)
+#endif
 
 class ChessBot {
 
@@ -54,6 +59,9 @@ public:
     void applyMove(const std::string &move);
 
     std::string getBestMove(short searchDepth, int timeLimit) {
+        // std::cout << "Debug: " << "test message" << std::endl;
+        // DEBUG_PRINT("test");
+        DEBUG_PRINT(getAvailableMoves());
         std::chrono::time_point<std::chrono::steady_clock> stopTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeLimit);
         return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, stopTime));
     }
@@ -65,10 +73,15 @@ public:
     void setMoveStrategy(const std::string &strategy) {
         if (moveStrategy != nullptr) {
             delete moveStrategy;
+            currentMoveStrategy = "";
         }
 
         if (strategy == RANDOM_STRATEGY) {
             moveStrategy = new RandomMoveStrategy();
+            currentMoveStrategy = RANDOM_STRATEGY;
+        } else if (strategy == BEST_EVAL_MOVE_STRATEGY) {
+            moveStrategy = new BestEvalMoveStrategy();
+            currentMoveStrategy = BEST_EVAL_MOVE_STRATEGY;
         } else {
             std::cerr << "Error: Invalid move strategy: " << strategy << std::endl;
             abort(); // Invalid strategy
@@ -78,10 +91,20 @@ public:
     void setEvalStrategy(const std::string &strategy) {
         if (evalStrategy != nullptr) {
             delete evalStrategy;
+            currentEvalStrategy = "";
         }
 
         if (strategy == NO_EVAL_STRATEGY) {
             evalStrategy = new NoEvalStrategy();
+        } else if (strategy == POSITION_EVAL_STRATEGY) {
+            evalStrategy = new PositionEvalStrategy();
+            currentEvalStrategy = POSITION_EVAL_STRATEGY;
+        } else if (strategy == MATERIAL_EVAL_STRATEGY) {
+            evalStrategy = new MaterialEvalStrategy();
+            currentEvalStrategy = MATERIAL_EVAL_STRATEGY;
+        } else if (strategy == MAT_POS_EVAL_STRATEGY) {
+            evalStrategy = new MatPosEvalStrategy();
+            currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
         } else {
             std::cerr << "Error: Invalid evaluation strategy: " << strategy << std::endl;
             abort(); // Invalid strategy
@@ -101,11 +124,33 @@ public:
     std::string getFEN() const;
 
     bool isCheck() const;
-    bool isCheckMate();
+    
+    short getCheckmate() {
+        if (botLogic.isInCheck(isWhiteTurn) && botLogic.getLegalMoves(isWhiteTurn).empty()) {
+            return isWhiteTurn ? 2 : 1; // 2 for black wins, 1 for white wins
+        }
+        return 0; // No checkmate
+    }
+
+    bool isStaleMate();
 
     std::vector<ChessLogic::Move> getMoveHistory() const;
 
     std::vector<std::string> translateMoveHistory() const;
+
+    bool isThreefoldRepetition() const;
+
+    std::string getCurrentMoveStrategy() const {
+        return currentMoveStrategy;
+    }
+
+    std::string getCurrentEvalStrategy() const {
+        return currentEvalStrategy;
+    }
+
+    std::string getAvailableMoves();
+
+    const std::string whosTurn() const;
 
 protected:
 
@@ -116,7 +161,10 @@ protected:
 
     bool isWhite = true;
 
-    ChessLogic botLogic = ChessLogic();
+    std::string currentMoveStrategy;
+    std::string currentEvalStrategy;;
+
+    ChessLogic botLogic;;
 
 };
 

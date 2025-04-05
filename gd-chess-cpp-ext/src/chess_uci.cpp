@@ -30,7 +30,7 @@ extern "C" {
         }
     }
 
-    const char * expotFEN(void * uci_instance) {
+    const char * exportFEN(void * uci_instance) {
         if (uci_instance) {
             return static_cast<ChessUCI *>(uci_instance)->exportFEN();
         }
@@ -57,17 +57,37 @@ extern "C" {
         }
     }
 
+    const char * debugBot(void * uci_instance, const char * option) {
+        if (uci_instance) {
+            return static_cast<ChessUCI *>(uci_instance)->debugBot(option);
+        }
+        return nullptr;
+    }
+
     void makeMove(void * uci_instance, const char * move) {
         if (uci_instance) {
             static_cast<ChessUCI *>(uci_instance)->makeMove(move);
         }
     }
 
-    const char ** exportMoveHistory(void * uci_instance) {
+    char ** getMoveHistoryPtr(void * uci_instance) {
         if (uci_instance) {
-            return static_cast<ChessUCI *>(uci_instance)->exportMoveHistory();
+            return static_cast<ChessUCI *>(uci_instance)->getMoveHistory();
         }
         return nullptr;
+    }
+
+    void freeMoveHistoryPtr(void * uci_instance, char **moveHistory) {
+        if (uci_instance) {
+            static_cast<ChessUCI *>(uci_instance)->freeMoveHistory(moveHistory);
+        }
+    }
+
+    short getGameResult(void * uci_instance) {
+        if (uci_instance) {
+            return static_cast<ChessUCI *>(uci_instance)->getGameResult();
+        }
+        return 0;
     }
 }
 
@@ -142,7 +162,7 @@ void ChessUCI::setOption(const char * option, const char * value) {
 }
 
 
-char ** ChessUCI::exportMoveHistory() {
+char ** ChessUCI::getMoveHistory() {
     if (chessBot) {
         // Get the move history as a vector of strings
         std::vector<std::string> moveHistory = chessBot->translateMoveHistory();
@@ -171,6 +191,62 @@ char ** ChessUCI::exportMoveHistory() {
         cStrings[moveHistory.size()] = nullptr;
 
         return cStrings;
+    }
+    return nullptr;
+}
+
+short ChessUCI::getGameResult() {
+    if (chessBot) {
+        if (chessBot->getCheckmate() == 1) {
+            return 2; // White wins
+        } else if (chessBot->getCheckmate() == 2) {
+            return 3; // Black wins
+        } else if (chessBot->isStaleMate()) {
+            return 4; // Stalemate
+        } else if (chessBot->isCheck()) {
+            return 1; // normal check
+        }
+    }
+    return 0; // Game ongoing
+}
+
+void ChessUCI::freeMoveHistory(char **moveHistory) {
+    if (moveHistory) {
+        for (size_t i = 0; moveHistory[i] != nullptr; ++i) {
+            free(moveHistory[i]); // Free each string
+        }
+        free(moveHistory); // Free the array
+    }
+}
+
+char * ChessUCI::debugBot(const char * property) {
+    if (chessBot) {
+        static std::string joinedStrategies;
+        const auto processStrategies = [&](const std::vector<std::string>& strategies) {
+            joinedStrategies = std::accumulate(
+                std::next(strategies.begin()), strategies.end(), strategies[0],
+                [](std::string a, const std::string& b) { return a + "," + b; });
+            return const_cast<char *>(joinedStrategies.c_str());
+        };
+
+        if (strcmp(property, "moves") == 0) {
+            // return const_cast<char *>(chessBot->getAvailableMoves().c_str());
+            return const_cast<char *>("");
+        } else if (strcmp(property, "color") == 0) {
+            return const_cast<char *>(chessBot->whosTurn().c_str());
+        } else if (strcmp(property, "list_move_strategy") == 0) {
+            return processStrategies(chessBot->listMoveStrategies());
+        } else if (strcmp(property, "list_eval_strategy") == 0) {
+            return processStrategies(chessBot->listEvalStrategies());
+        } else if (strcmp(property, "current_move_strategy") == 0) {
+            return const_cast<char *>(chessBot->getCurrentMoveStrategy().c_str());
+        } else if (strcmp(property, "current_eval_strategy") == 0) {
+            return const_cast<char *>(chessBot->getCurrentEvalStrategy().c_str());
+        } else {
+            static std::string errorMsg = "Unknown property: ";
+            errorMsg += property;
+            return const_cast<char *>(errorMsg.c_str());
+        }
     }
     return nullptr;
 }

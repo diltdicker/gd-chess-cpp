@@ -14,7 +14,7 @@
 #define CHESS_UCI_H
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
 #else
 #define DEBUG_PRINT(x)
 #endif

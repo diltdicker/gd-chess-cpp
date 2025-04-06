@@ -3,9 +3,11 @@
 ChessBot::ChessBot() {
     botLogic = ChessLogic();
     moveStrategy = new BestEvalMoveStrategy();
+    // moveStrategy = new RandomMoveStrategy();
     currentMoveStrategy = BEST_EVAL_MOVE_STRATEGY;
-    evalStrategy = new MatPosEvalStrategy();
-    currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
+    // currentMoveStrategy = RANDOM_STRATEGY;
+    evalStrategy = new MaterialEvalStrategy();
+    currentEvalStrategy = MATERIAL_EVAL_STRATEGY;
     this->setFEN(DEFAULT_FEN);
 }
 
@@ -193,17 +195,15 @@ const std::string ChessBot::getFEN() {
 
 ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
     ChessLogic::Move bestMove = ChessLogic::Move();
-    botLogic.transpositionTable.clear(); // Clear the transposition table before each search
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
-        DEBUG_PRINT("Searching at depth: " << depth);
+        botLogic.transpositionTable.clear(); // Clear the transposition table before each search
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
+            DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");
             break; // Stop if time limit is reached
         }
     }
-    DEBUG_PRINT("Best move found: " << botLogic.translateMoveToString(bestMove));
-    DEBUG_PRINT("Best move score: " << evalStrategy->evaluate(&botLogic, isWhiteTurn));
     return bestMove;
 }
 
@@ -242,6 +242,7 @@ bool ChessBot::isStaleMate() {
 
 std::string ChessBot::getAvailableMoves() {
     std::vector<ChessLogic::Move> legalMoves = botLogic.getLegalMoves(isWhiteTurn);
+
     std::string moves; // static needed to keep the string alive after function returns
     for (const auto &move : legalMoves) {
         moves += botLogic.translateMoveToString(move) + ", ";

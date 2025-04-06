@@ -8,9 +8,9 @@ int MaterialEvalStrategy::evaluate(const ChessLogic * chessBoard, bool whitesTur
     for (int i = 0; i < 64; ++i) {
         const auto &piece = board[i];
         if (piece.color == 1) { // White
-            materialScore += this->pieceValues[piece.type];
+            materialScore += this->pieceValues[piece.type]; // white pieces positive
         } else if (piece.color == 2) { // Black
-            materialScore -= this->pieceValues[piece.type];
+            materialScore -= this->pieceValues[piece.type]; // black pieces negative
         }
     }
 

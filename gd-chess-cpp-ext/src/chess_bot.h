@@ -19,7 +19,7 @@
 #include "mat_pos_eval.h"
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
 #else
 #define DEBUG_PRINT(x)
 #endif
@@ -46,6 +46,7 @@ public:
     {
         ChessLogic::Move move;
         int moveScore;
+        short depth;
     };
 
     const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -60,10 +61,12 @@ public:
 
     std::string getBestMove(short searchDepth, int timeLimit)
     {
-        DEBUG_PRINT("Searching for best move...");
+        DEBUG_PRINT("Searching for best move... in " << timeLimit << " milliseconds");
         DEBUG_PRINT(getAvailableMoves());
-        DEBUG_PRINT("try this");
+        // DEBUG_PRINT("try this");
+        // DEBUG_PRINT("start time: " << std::chrono::steady_clock::now())
         std::chrono::time_point<std::chrono::steady_clock> stopTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeLimit);
+        // DEBUG_PRINT("stop time: " << stopTime)
         return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, stopTime));
     }
 

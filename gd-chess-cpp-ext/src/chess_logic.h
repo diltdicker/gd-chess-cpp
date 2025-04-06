@@ -14,13 +14,19 @@
 #include <bitset>
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x << std::endl
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
 #else
 #define DEBUG_PRINT(x)
 #endif
 
 class ChessLogic {
 public:
+
+struct moveHash
+{
+    int score;
+    short depth;
+};
 
 struct chessPiece
 {
@@ -35,6 +41,8 @@ struct chessPiece
         }
         return *this;
     }
+
+    chessPiece(const chessPiece& other) : color(other.color), type(other.type) {}
 
     // Constructor for chessPiece
     chessPiece(short color = 0, short type = 0) : color(color), type(type) {}
@@ -52,10 +60,16 @@ struct chessPiece
 
         // Default constructor for a null move
         Move() 
-            : from(-1), to(-1), promotion(-1), capture(-1), color(-1), piece(-1), moveType(-1) {}
+            : from(-1), to(-1), promotion(0), capture(0), color(0), piece(0), moveType(0) {}
+
+        // Copy constructor (deep copy isn't needed here, just copying the fields)
+        Move(const Move& other)
+            : from(other.from), to(other.to), promotion(other.promotion),
+                capture(other.capture), color(other.color), piece(other.piece), moveType(other.moveType) {}
     };
 
-    bool whiteQCastle = true;
+    // change to stack type TODO
+    bool whiteQCastle = true
     bool whiteKCastle = true;
     bool blackQCastle = true;
     bool blackKCastle = true;
@@ -127,13 +141,16 @@ struct chessPiece
 
     void initializeZobrist();
 
-    std::unordered_map<uint64_t, int> transpositionTable;
+    std::unordered_map<uint64_t, moveHash> transpositionTable;
 
     std::vector<Move> getMoveHistory() const;
+
+    std::string printMoves(std::vector<Move> moves) const;
 
     std::string squareToString(short square) const;
 
     short stringToSquare(const std::string &squareStr) const;
+
 
 protected:
 

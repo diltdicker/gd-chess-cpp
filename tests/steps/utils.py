@@ -19,13 +19,13 @@ def then_display_board(context):
     print("Current board state:")
     print(context.board)
 
-@then('Bot should play "{move}"')
-def then_bot_move(context, move):
+@then('Bot({depth}) should play "{move}"')
+def then_bot_move(context, depth, move):
     """
     Verify that the bot plays the expected move.
     """
     # print(context.board)
-    bot_move = context.bot.get_bot_move(1, 1000)
+    bot_move = context.bot.get_bot_move(int(depth), 1_000 * 10)
     print(context.bot.export_fen())
     print(f"Bot move: {bot_move}")
     # context.bot.make_move("d8h4")

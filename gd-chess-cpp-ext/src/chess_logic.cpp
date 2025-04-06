@@ -36,7 +36,10 @@ short ChessLogic::getSqureXYrelative(short square, short x, short y) const {
     short newX = (square % 8) + x;
     short newY = (square / 8) + y;
     if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
-        return newY * 8 + newX;
+        short relativeSqure = (newY * 8) + newX;
+        if (relativeSqure >= 0 && relativeSqure < 64) {
+            return relativeSqure;
+        }
     }
     return -1;
 }
@@ -238,20 +241,45 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
         getPawnMoveBitBoard(color) | getKnightMoveBitBoard(color) | getBishopMoveBitBoard(color) |
         getRookMoveBitBoard(color) | getKingMoveBitBoard(color)
     ); 
-    
 
     for (short i = 0; i < fromSquares.size() ; ++i) {
-        if (internalBoard[i].color == color) {
+
+        if (internalBoard[fromSquares.at(i)].color == color) {
             for (short j = 0; j < toSquares.size(); ++j) {
-                // DEBUG_PRINT("validate from square has a piece: " << fromSquares.at(i) << " piece: " << internalBoard[fromSquares.at(i)].type);
 
                 Move move = translateMove(fromSquares.at(i), toSquares.at(j));
+
                 if (isMoveLegal(move)) {
-                    legalMoves.push_back(move);
+
+                    if (move.piece == 1) { // add promotions
+                        if ((move.color == 1 && move.to / 8 == 7) || (move.color = 2 && move.to / 8 == 0)) {
+                            Move queenPromo = Move(move);
+                            queenPromo.promotion = 5;
+                            Move rookPromo = Move(move);
+                            rookPromo.promotion = 4;
+                            Move bishopPromo = Move(move);
+                            bishopPromo.promotion = 3;
+                            Move kightPromo = Move(move);
+                            kightPromo.promotion = 2;
+                            legalMoves.push_back(queenPromo);
+                            legalMoves.push_back(rookPromo);
+                            legalMoves.push_back(bishopPromo);
+                            legalMoves.push_back(kightPromo);
+                        } else {
+                            legalMoves.push_back(move); // normal pawn move
+                        }
+
+                    } else {
+                        legalMoves.push_back(move);
+                    }
+
+                    
                 }
             }
         }
     }
+
+    
 
     return legalMoves;
 }
@@ -285,8 +313,10 @@ void ChessLogic::makeMove(const Move &move) {
     }
 
     // Update the internal board for normal moves
-    internalBoard[move.to] = internalBoard[move.from];
-    internalBoard[move.to].type = move.promotion ? move.promotion : internalBoard[move.from].type;
+    internalBoard[move.to] = internalBoard[move.from]; // Move the piece
+    if (move.promotion != 0) {
+        internalBoard[move.to].type = move.promotion; // Promote the pawn
+    }
     internalBoard[move.from] = {0, 0}; // Clear the starting square
 
     // Update castling rights
@@ -398,6 +428,10 @@ void ChessLogic::undoMove() {
         internalBoard[lastMove.from].type = 1; // Restore the piece type to pawn
     }
 
+
+    if (lastMove.piece == 6 && lastMove.from == 60) {
+        if (internalBoard[56].type == )
+    }
     // Restore castling rights
     if (lastMove.from == 60) { // White king moves
         whiteQCastle = true;
@@ -487,8 +521,6 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
 }
 
 std::string ChessLogic::translateMoveToString(const Move &move) const {
-    // DEBUG_PRINT("Translating move to string: from " << move.from << " to " << move.to);
-    // DEBUG_PRINT("Piece: " << move.piece << " Color: " << move.color);
 
     // Check for a null move
     if (move.from == -1 && move.to == -1) {
@@ -510,8 +542,6 @@ std::string ChessLogic::translateMoveToString(const Move &move) const {
         }
     }
 
-    // DEBUG_PRINT("Translated move to string: " << moveStr);
-
     return moveStr;
 }
 
@@ -520,10 +550,13 @@ const ChessLogic::chessPiece* ChessLogic::getChessBoard() const {
 }
 
 bool ChessLogic::isInCheck(short color) const {
+
+
     // Find the king's position
     short kingSquare = -1;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].type == 6 && internalBoard[i].color == color) {
+            
             kingSquare = i;
             break;
         }
@@ -576,7 +609,8 @@ bool ChessLogic::isInCheck(short color) const {
     const short rookDirections[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
     for (const auto &dir : rookDirections) {
         short targetSquare = kingSquare;
-        while ((targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1])) != -1) {
+        targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1]);
+        while (targetSquare != -1) {
             if (internalBoard[targetSquare].type != 0) {
                 if ((internalBoard[targetSquare].type == 4 || internalBoard[targetSquare].type == 5) &&
                     internalBoard[targetSquare].color == opponentColor) {
@@ -584,6 +618,7 @@ bool ChessLogic::isInCheck(short color) const {
                 }
                 break;
             }
+            targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1]);
         }
     }
 
@@ -622,14 +657,14 @@ uint64_t ChessLogic::getPawnMoveBitBoard(short color) const {
     if (color == 1) { // White pawns
         singlePush = (pawnBitboard >> 8) & emptySquares; // Move one square forward
         doublePush = ((singlePush & 0x0000FF0000000000) >> 8) & emptySquares; // Move two squares forward from rank 2
-        capturesLeft = (pawnBitboard >> 9) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
-        capturesRight = (pawnBitboard >> 7) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
+        capturesLeft = (pawnBitboard >> 9) & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard >> 7) & ~0x8080808080808080; // Diagonal right capture
         
     } else { // Black pawns
         singlePush = (pawnBitboard << 8) & emptySquares; // Move one square forward
         doublePush = ((singlePush & 0x0000000000FF0000) << 8) & emptySquares; // Move two squares forward from rank 7
-        capturesLeft = (pawnBitboard << 7) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
-        capturesRight = (pawnBitboard << 9) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
+        capturesLeft = (pawnBitboard << 7) & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard << 9) & ~0x8080808080808080; // Diagonal right capture
     }
 
     // Combine all possible moves
@@ -849,7 +884,7 @@ std::vector<ChessLogic::Move> ChessLogic::getMoveHistory() const {
         moveHistory.push_back(tempStack.top());
         tempStack.pop();
     }
-
+    std::reverse(moveHistory.begin(), moveHistory.end());
     return moveHistory;
 }
 
@@ -917,4 +952,16 @@ short ChessLogic::stringToSquare(const std::string &squareStr) const {
     }
 
     return (8 - (rank - '1')) * 8 + (file - 'a');
+}
+
+std::string ChessLogic::printMoves(std::vector<Move> moves) const {
+    std::string moveString;
+    for (Move move : moves) {
+        moveString += translateMoveToString(move) + ", ";
+    }
+    if (moveString.length() > 2) {
+        moveString.pop_back();
+        moveString.pop_back();
+    }
+    return moveString;
 }

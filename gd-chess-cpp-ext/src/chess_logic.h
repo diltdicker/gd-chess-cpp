@@ -14,7 +14,7 @@
 #include <bitset>
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n"
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
 #else
 #define DEBUG_PRINT(x)
 #endif

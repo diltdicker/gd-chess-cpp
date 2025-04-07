@@ -319,6 +319,7 @@ void ChessLogic::makeMove(const Move &move) {
     }
     internalBoard[move.from] = {0, 0}; // Clear the starting square
 
+    castleStack.push(castleRights(whiteKCastle, whiteQCastle, blackKCastle, blackQCastle)); // record the previous castling rights
     // Update castling rights
     if (move.from == 60) { // White king moves
         whiteQCastle = false;
@@ -428,26 +429,13 @@ void ChessLogic::undoMove() {
         internalBoard[lastMove.from].type = 1; // Restore the piece type to pawn
     }
 
-
-    if (lastMove.piece == 6 && lastMove.from == 60) {
-        if (internalBoard[56].type == )
-    }
     // Restore castling rights
-    if (lastMove.from == 60) { // White king moves
-        whiteQCastle = true;
-        whiteKCastle = true;
-    } else if (lastMove.from == 56) { // White queenside rook moves
-        whiteQCastle = true;
-    } else if (lastMove.from == 63) { // White kingside rook moves
-        whiteKCastle = true;
-    } else if (lastMove.from == 4) { // Black king moves
-        blackQCastle = true;
-        blackKCastle = true;
-    } else if (lastMove.from == 0) { // Black queenside rook moves
-        blackQCastle = true;
-    } else if (lastMove.from == 7) { // Black kingside rook moves
-        blackKCastle = true;
-    }
+    castleRights oldRights = castleStack.top();
+    castleStack.pop();
+    whiteKCastle = oldRights.wKingside;
+    whiteQCastle = oldRights.wQueenside;
+    blackKCastle = oldRights.bKingside;
+    blackQCastle = oldRights.bQueenside;
 
     // Restore en passant square
     if (!moveStack.empty()) {
@@ -462,6 +450,11 @@ void ChessLogic::emtpyMoveStack() {
     while (!moveStack.empty()) {
         moveStack.pop();
     }
+    while (!castleStack.empty())
+    {
+        castleStack.pop();
+    }
+    
 }
 
 ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) const {

@@ -7,8 +7,16 @@ extern "C" {
 
     // exported functions with C linkage that can be called from other languages
 
+    void testCMethod() {
+        printf("hello world \n");
+    }
+
     void * createChessUci() {
-        return new(std::nothrow) ChessUCI;
+        ChessUCI* uci = new(std::nothrow) ChessUCI;
+        if (!uci) {
+            return nullptr;  // If allocation fails, return nullptr
+        }
+        return uci;
     }
 
     void destroyChessUci(void * instance) {
@@ -93,14 +101,18 @@ extern "C" {
 
 ChessUCI::ChessUCI() {
     // Constructor implementation
-    chessBot = new(std::nothrow) ChessBot();
+    chessBot = new ChessBot();
+    if (chessBot) {
+    }
 }
+
 ChessUCI::~ChessUCI() {
     // Destructor implementation
     if (chessBot) {
         delete chessBot;
         chessBot = nullptr;
     }
+    
 }
 
 char * ChessUCI::handleUciCommand(const char * command) {

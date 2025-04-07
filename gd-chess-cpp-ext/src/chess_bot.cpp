@@ -85,6 +85,7 @@ void ChessBot::applyMove(const std::string &move) {
 }
 
 void ChessBot::setFEN(const std::string &fen) {
+
     std::regex fenRegex("([0-8prnbqkPRNBQK/]+) ([wb]) ([KQkq-]+) ([0-8a-h-]+) (\\d+) (\\d+)");
     std::smatch match;
     ChessLogic::chessPiece chessBoard[64]; // Initialize the chess board
@@ -180,10 +181,15 @@ const std::string ChessBot::getFEN() {
     fen += " ";
     fen += (isWhiteTurn ? "w" : "b");
     fen += " ";
-    fen += std::string(botLogic.whiteKCastle ? "K" : "-") +
-       std::string(botLogic.whiteQCastle ? "Q" : "-") +
-       std::string(botLogic.blackKCastle ? "k" : "-") +
-       std::string(botLogic.whiteQCastle ? "q" : "-");
+    if (botLogic.whiteKCastle || botLogic.whiteQCastle || botLogic.blackKCastle || botLogic.blackQCastle) {
+        fen += std::string(botLogic.whiteKCastle ? "K" : "") +
+       std::string(botLogic.whiteQCastle ? "Q" : "") +
+       std::string(botLogic.blackKCastle ? "k" : "") +
+       std::string(botLogic.whiteQCastle ? "q" : "");
+    } else {
+        fen += "-";
+    }
+    
     fen += " ";
     fen += (botLogic.enPassantSquare != -1) ? botLogic.squareToString(botLogic.enPassantSquare) : "-";
     fen += " ";

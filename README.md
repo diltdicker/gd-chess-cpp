@@ -21,7 +21,7 @@ sudo apt-get install scons
 Pull submodule godot-cpp
 
 ```shell
-git submodule update --recursive
+git submodule update --init --recursive
 ```
 
 ### Windows builds

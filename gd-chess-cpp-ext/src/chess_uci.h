@@ -26,6 +26,8 @@ extern "C" {
     // exported functions with C linkage that can be called from other languages
     EXPORT_SYMBOL void * createChessUci();
 
+    EXPORT_SYMBOL void testCMethod();
+
     EXPORT_SYMBOL void destroyChessUci(void * instance);
 
     EXPORT_SYMBOL const char * inputCommand(void * uci_instance, const char * command);
@@ -54,8 +56,6 @@ extern "C" {
 class ChessUCI {
 
 public:
-
-    
 
     // Constructor
     ChessUCI();

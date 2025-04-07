@@ -22,6 +22,18 @@
 class ChessLogic {
 public:
 
+
+struct castleRights
+{
+    bool wKingside;
+    bool wQueenside;
+    bool bKingside;
+    bool bQueenside;
+
+    castleRights(bool wKingside = false, bool wQueenside = false, bool bKingside = false, bool bQueenside = false) : 
+        wKingside(wKingside), wQueenside(wQueenside), bKingside(bKingside), bQueenside(bQueenside) {}
+};
+
 struct moveHash
 {
     int score;
@@ -69,7 +81,7 @@ struct chessPiece
     };
 
     // change to stack type TODO
-    bool whiteQCastle = true
+    bool whiteQCastle = true;
     bool whiteKCastle = true;
     bool blackQCastle = true;
     bool blackKCastle = true;
@@ -157,6 +169,7 @@ protected:
     chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
 
     std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
+    std::stack<castleRights> castleStack; // stack to keep track of castling rights history
 
 private:
     uint64_t zobristTable[64][12]; // Random values for pieces on squares

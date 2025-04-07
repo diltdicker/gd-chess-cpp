@@ -2,6 +2,11 @@ import os
 import platform
 import ctypes
 
+# need to explicitly define the class type of the ChessUCI C++ class that gets returned to prevent seg-fault
+class ChessUCI(ctypes.Structure):
+    _fields_ = [
+        ("chessBot", ctypes.POINTER(ctypes.c_void_p))  # Adjust to actual member types of ChessUCI
+    ]
 
 class GDChessBot:
     def __init__(self):
@@ -11,6 +16,7 @@ class GDChessBot:
         self.uci_instance = None
         if not self.library:
             raise RuntimeError("Library not loaded. Call load_library() first.")
+        self.library.createChessUci.restype = ctypes.POINTER(ChessUCI)
         self.uci_instance = self.library.createChessUci()
         if not self.uci_instance:
             raise RuntimeError("Failed to create UCI instance.")
@@ -33,9 +39,11 @@ class GDChessBot:
         return self.library.inputCommand(self.uci_instance, command.encode()).decode()
 
     def input_fen(self, fen: str):
+        print('gonna run input fen')
         if not self.uci_instance:
             raise RuntimeError("UCI instance not created.")
         self.library.inputFEN(self.uci_instance, fen.encode())
+        print('python input fen working')
 
     def export_fen(self) -> str:
         if not self.uci_instance:
@@ -118,6 +126,7 @@ if __name__ == "__main__":
     bot = GDChessBot()
 
     try:
-        bot.load_library()
+        # bot.load_library()
+        pass
     except Exception as e:
         print(f"Error: {e}")

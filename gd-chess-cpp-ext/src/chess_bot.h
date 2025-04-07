@@ -61,12 +61,7 @@ public:
 
     std::string getBestMove(short searchDepth, int timeLimit)
     {
-        DEBUG_PRINT("Searching for best move... in " << timeLimit << " milliseconds");
-        DEBUG_PRINT(getAvailableMoves());
-        // DEBUG_PRINT("try this");
-        // DEBUG_PRINT("start time: " << std::chrono::steady_clock::now())
         std::chrono::time_point<std::chrono::steady_clock> stopTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeLimit);
-        // DEBUG_PRINT("stop time: " << stopTime)
         return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, stopTime));
     }
 

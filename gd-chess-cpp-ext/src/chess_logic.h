@@ -74,6 +74,9 @@ struct chessPiece
         Move() 
             : from(-1), to(-1), promotion(0), capture(0), color(0), piece(0), moveType(0) {}
 
+        Move(short from, short to, short promotion, short capture, short color, short piece, short moveType) :
+            from(from), to(to), promotion(promotion), capture(capture), color(color), piece(piece), moveType(moveType) {}
+
         // Copy constructor (deep copy isn't needed here, just copying the fields)
         Move(const Move& other)
             : from(other.from), to(other.to), promotion(other.promotion),
@@ -110,7 +113,7 @@ struct chessPiece
 
     void emtpyMoveStack();
 
-    bool isInCheck(short color) const;
+    bool isInCheck(bool isWhite) const;
 
     // Undo the last move
     void undoMove();
@@ -153,7 +156,7 @@ struct chessPiece
 
     void initializeZobrist();
 
-    std::unordered_map<uint64_t, moveHash> transpositionTable;
+    std::unordered_map<uint64_t, int> transpositionTable;
 
     std::vector<Move> getMoveHistory() const;
 

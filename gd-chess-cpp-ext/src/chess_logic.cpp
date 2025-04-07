@@ -232,6 +232,7 @@ void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
 
 std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
     std::vector<Move> legalMoves;
+    legalMoves.clear();
     short color = isWhite ? 1 : 2;
     short opponentColor = isWhite ? 2 : 1;
 
@@ -241,9 +242,9 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
         getPawnMoveBitBoard(color) | getKnightMoveBitBoard(color) | getBishopMoveBitBoard(color) |
         getRookMoveBitBoard(color) | getKingMoveBitBoard(color)
     ); 
-
+    
     for (short i = 0; i < fromSquares.size() ; ++i) {
-
+        
         if (internalBoard[fromSquares.at(i)].color == color) {
             for (short j = 0; j < toSquares.size(); ++j) {
 
@@ -252,7 +253,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
                 if (isMoveLegal(move)) {
 
                     if (move.piece == 1) { // add promotions
-                        if ((move.color == 1 && move.to / 8 == 7) || (move.color = 2 && move.to / 8 == 0)) {
+                        if ((move.color == 1 && move.to / 8 == 7) || (move.color == 2 && move.to / 8 == 0)) {
                             Move queenPromo = Move(move);
                             queenPromo.promotion = 5;
                             Move rookPromo = Move(move);
@@ -266,6 +267,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
                             legalMoves.push_back(bishopPromo);
                             legalMoves.push_back(kightPromo);
                         } else {
+
                             legalMoves.push_back(move); // normal pawn move
                         }
 
@@ -285,6 +287,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
 }
 
 void ChessLogic::makeMove(const Move &move) {
+
     // Push the move onto the stack for undo functionality
     moveStack.push(move);
 
@@ -343,6 +346,7 @@ void ChessLogic::makeMove(const Move &move) {
     } else {
         enPassantSquare = -1; // Reset en passant square
     }
+
 }
 
 bool ChessLogic::isMoveLegal(const Move &move) {
@@ -353,7 +357,7 @@ bool ChessLogic::isMoveLegal(const Move &move) {
     // Temporarily make the move
     makeMove(move);
 
-    if (isInCheck(move.color)) {
+    if (isInCheck(move.color == 1)) {
         isLegal = false; // Move leaves the king in check
     }
 
@@ -366,7 +370,7 @@ bool ChessLogic::isMoveLegal(const Move &move) {
 
         // Check if the king passes through or lands on a square under attack
         for (short i = 0; i <= 2; ++i) { // Check up to 2 squares (including the destination)
-            if (isInCheck(move.color)) {
+            if (isInCheck(move.color == 1)) {
                 isLegal = false; // King passes through or lands on a square under attack
                 break;
             }
@@ -405,7 +409,7 @@ void ChessLogic::undoMove() {
 
     // Handle captures
     if (lastMove.capture) {
-        internalBoard[lastMove.to] = {static_cast<short>(lastMove.capture), static_cast<short>(lastMove.color == 1 ? 2 : 1)};
+        internalBoard[lastMove.to] = chessPiece(lastMove.color == 1 ? 2 : 1, lastMove.capture);
     }
 
     // Handle castling
@@ -481,8 +485,7 @@ ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) con
         move.moveType = 3;
         move.capture = 1; // Pawn captured
     }
-    
-    return move;
+    return Move(move);
 }
 
 ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
@@ -491,8 +494,8 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
         std::abort();
     }
 
-    short fromSquare = (moveStr[1] - '1') * 8 + (moveStr[0] - 'a');
-    short toSquare = (moveStr[3] - '1') * 8 + (moveStr[2] - 'a');
+    short fromSquare = stringToSquare(moveStr.substr(0,2));
+    short toSquare = stringToSquare(moveStr.substr(2,2));
 
     Move move = translateMove(fromSquare, toSquare);
 
@@ -542,8 +545,9 @@ const ChessLogic::chessPiece* ChessLogic::getChessBoard() const {
     return internalBoard;
 }
 
-bool ChessLogic::isInCheck(short color) const {
+bool ChessLogic::isInCheck(bool isWhite) const {
 
+    short color = isWhite ? 1 : 2;
 
     // Find the king's position
     short kingSquare = -1;
@@ -943,13 +947,14 @@ short ChessLogic::stringToSquare(const std::string &squareStr) const {
         std::cerr << "Error: Invalid square string provided to stringToSquare." << std::endl;
         std::abort();
     }
-
-    return (8 - (rank - '1')) * 8 + (file - 'a');
+    short square = (('1' - rank) + 7 ) * 8 + (file - 'a');
+    return square;
 }
 
 std::string ChessLogic::printMoves(std::vector<Move> moves) const {
     std::string moveString;
     for (Move move : moves) {
+        moveString += move.color == 1 ? "w: " : "b:";
         moveString += translateMoveToString(move) + ", ";
     }
     if (moveString.length() > 2) {

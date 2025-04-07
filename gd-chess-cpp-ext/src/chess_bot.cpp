@@ -63,6 +63,10 @@ void ChessBot::applyMove(const std::string &move) {
 
     // Apply the move using the bot logic
     ChessLogic::Move translatedMove = botLogic.translateMove(move);
+    if (!botLogic.isMoveLegal(translatedMove)) {
+        DEBUG_PRINT("MOVE NOT VALID " << move);
+        abort();
+    }
     botLogic.makeMove(translatedMove);
 
     // Update the turn
@@ -203,7 +207,7 @@ ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chro
     ChessLogic::Move bestMove = ChessLogic::Move();
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
-        botLogic.transpositionTable.clear(); // Clear the transposition table before each search
+        // botLogic.transpositionTable.clear(); // Clear the transposition table before each search
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
             DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");

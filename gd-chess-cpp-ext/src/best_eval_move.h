@@ -29,6 +29,11 @@ protected:
 
     int minimax2(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
         short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
+
+    int betaAlphaMinimax(ChessLogic &logic, int beta, int alpha, EvaluationStrategy* evalStrategy, bool isWhite, 
+        short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
+
+    std::string printScores(std::vector<int> scores, int bestScore, bool isWhite, short depth);
 };
 
 #endif

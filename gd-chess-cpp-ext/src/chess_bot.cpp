@@ -85,21 +85,17 @@ void ChessBot::applyMove(const std::string &move) {
 }
 
 void ChessBot::setFEN(const std::string &fen) {
-    DEBUG_PRINT("SET FEN START");
-    DEBUG_PRINT(fen);
     std::regex fenRegex("([0-8prnbqkPRNBQK/]+) ([wb]) ([KQkq-]+) ([0-8a-h-]+) (\\d+) (\\d+)");
     std::smatch match;
     ChessLogic::chessPiece chessBoard[64]; // Initialize the chess board
 
     if (std::regex_match(fen, match, fenRegex)) {
-        DEBUG_PRINT("FEN IS VALID");
         std::string board = match[1].str();
         char turn = match[2].str()[0];
         std::string castling = match[3].str();
         std::string enPassant = match[4].str();
         int halfMove = std::stoi(match[5].str());
         int fullMove = std::stoi(match[6].str());
-        DEBUG_PRINT("able to parse FEN");
 
         for (size_t i = 0; i < 64; i++) {
             chessBoard[i] = ChessLogic::chessPiece(0, 0); // Initialize all squares to empty
@@ -127,7 +123,6 @@ void ChessBot::setFEN(const std::string &fen) {
                 index++;
             }
         }
-        DEBUG_PRINT("able to parse FEN board");
 
         isWhiteTurn = (turn == 'w');
         botLogic.whiteQCastle = castling.find('Q') != std::string::npos;
@@ -135,36 +130,22 @@ void ChessBot::setFEN(const std::string &fen) {
         botLogic.blackQCastle = castling.find('q') != std::string::npos;
         botLogic.blackKCastle = castling.find('k') != std::string::npos;
 
-        DEBUG_PRINT("able to parse FEN caslting rights");
-
         if (enPassant != "-") {
             botLogic.enPassantSquare = botLogic.stringToSquare(enPassant);
         } else {
             botLogic.enPassantSquare = -1;
         }
-
-        DEBUG_PRINT("able to get enpassant square");
-
         halfMoveClock = halfMove;
         fullMoveNumber = fullMove;
-
-        DEBUG_PRINT("able to get move clocks");
 
         // Update the bot logic with the new board state
         botLogic.copyChessBoard(chessBoard);
         botLogic.emtpyMoveStack();
 
-        DEBUG_PRINT("after empty move stack");
-
     } else {
         fprintf(stderr, "Invalid FEN string format. Aborting program.\n");
         std::abort();
     }
-
-    DEBUG_PRINT("END FEN");
-    DEBUG_PRINT("END FEN");
-    DEBUG_PRINT("END FEN");
-    DEBUG_PRINT("END FEN");
 }
 
 const std::string ChessBot::getFEN() {

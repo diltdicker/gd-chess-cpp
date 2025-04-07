@@ -228,7 +228,6 @@ void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
     for (int i = 0; i < 64; ++i) {
         internalBoard[i] = inputBoard[i];
     }
-    DEBUG_PRINT("able to copy chessboard");
 }
 
 std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
@@ -404,8 +403,7 @@ void ChessLogic::undoMove() {
     moveStack.pop();
 
     // Undo the move on the internal board
-    internalBoard[lastMove.from] = internalBoard[lastMove.to];
-    internalBoard[lastMove.from].type = lastMove.piece; // Restore the original piece type
+    internalBoard[lastMove.from] = chessPiece(lastMove.color, lastMove.piece);
     internalBoard[lastMove.to] = {0, 0}; // Clear the destination square
 
     // Handle captures
@@ -415,17 +413,17 @@ void ChessLogic::undoMove() {
 
     // Handle castling
     if (lastMove.moveType == 1) { // Kingside castling
-        internalBoard[lastMove.to + 1] = internalBoard[lastMove.to - 1]; // Move rook back
+        internalBoard[lastMove.to + 1] = chessPiece(internalBoard[lastMove.to - 1].color, 4); // Move rook back
         internalBoard[lastMove.to - 1] = {0, 0}; // Clear rook's new square
     } else if (lastMove.moveType == 2) { // Queenside castling
-        internalBoard[lastMove.to - 2] = internalBoard[lastMove.to + 1]; // Move rook back
+        internalBoard[lastMove.to - 2] = chessPiece(internalBoard[lastMove.to + 1].color, 4); // Move rook back
         internalBoard[lastMove.to + 1] = {0, 0}; // Clear rook's new square
     }
 
     // Handle en passant
     if (lastMove.moveType == 3) { // En passant
         short capturedPawnSquare = (lastMove.color == 1) ? lastMove.to + 8 : lastMove.to - 8;
-        internalBoard[capturedPawnSquare] = {static_cast<short>(lastMove.capture), static_cast<short>(lastMove.color == 1 ? 2 : 1)};
+        internalBoard[capturedPawnSquare] = chessPiece(lastMove.color == 1 ? 2 :1, 1);
         internalBoard[lastMove.to] = {0, 0}; // Clear the en passant capture square
     }
 
@@ -435,12 +433,14 @@ void ChessLogic::undoMove() {
     }
 
     // Restore castling rights
-    castleRights oldRights = castleStack.top();
-    castleStack.pop();
-    whiteKCastle = oldRights.wKingside;
-    whiteQCastle = oldRights.wQueenside;
-    blackKCastle = oldRights.bKingside;
-    blackQCastle = oldRights.bQueenside;
+    if (!castleStack.empty()) {
+        castleRights oldRights = castleStack.top();
+        castleStack.pop();
+        whiteKCastle = oldRights.wKingside;
+        whiteQCastle = oldRights.wQueenside;
+        blackKCastle = oldRights.bKingside;
+        blackQCastle = oldRights.bQueenside;
+    }
 
     // Restore en passant square
     if (!moveStack.empty()) {
@@ -459,7 +459,6 @@ void ChessLogic::emtpyMoveStack() {
     {
         castleStack.pop();
     }
-    DEBUG_PRINT("able to empty move stack");
 }
 
 ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) const {
@@ -900,13 +899,21 @@ std::string ChessLogic::printBitBoard(uint64_t bitboard) const {
 
 std::string ChessLogic::printBoard() const {
     std::string formattedString = "\n";
+    const char pieceRef[] = {'0', 'p', 'n', 'b', 'r', 'q', 'k'};
 
     for (int i = 0; i < 64; ++i) {
         if (internalBoard[i].type == 0) {
-            formattedString += "0";
+            formattedString += ".";
         } else {
-            formattedString += std::to_string(internalBoard[i].type);
+            
+            // formattedString += std::to_string(internalBoard[i].type);
+            if (internalBoard[i].color ==1) {
+                formattedString += toupper(pieceRef[internalBoard[i].type]);
+            } else {
+                formattedString += pieceRef[internalBoard[i].type];
+            }
         }
+        formattedString += " ";
         if ((i + 1) % 8 == 0) {
             formattedString += "\n";
         }

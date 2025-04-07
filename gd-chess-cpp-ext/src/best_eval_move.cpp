@@ -49,7 +49,7 @@ ChessLogic::Move BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evaluation
         // }
     }
 
-    DEBUG_PRINT("best move: " << logic.translateMoveToString(bestMove) << " score: "  << bestScore);
+    // DEBUG_PRINT("best move: " << logic.translateMoveToString(bestMove) << " score: "  << bestScore);
 
     return bestMove;
 }
@@ -57,10 +57,9 @@ ChessLogic::Move BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evaluation
 
 int BestEvalMoveStrategy::betaAlphaMinimax(ChessLogic &logic, int beta, int alpha, EvaluationStrategy* evalStrategy, bool isWhite, 
     short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
-        DEBUG_PRINT("betaAplpha depth:" << depth);
+        int bestScore = isWhite ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
 
         const std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
-        DEBUG_PRINT("BEFORE checkmate check");
         if (legalMoves.size() == 0) {
             if (logic.isInCheck(isWhite)) {
                 return isWhite ? -30000 + (depth * -1000) : 30000 + (depth * 1000);
@@ -69,7 +68,10 @@ int BestEvalMoveStrategy::betaAlphaMinimax(ChessLogic &logic, int beta, int alph
         }
 
         if (depth == 0) {
-            DEBUG_PRINT("BEFORE EVAL");
+            // DEBUG_PRINT("pawn move bitboard " << (isWhite ? "white": "black"));
+            // DEBUG_PRINT(logic.printBitBoard(logic.getPawnMoveBitBoard(isWhite ? 1 : 2)));
+            // DEBUG_PRINT("chess board");
+            // DEBUG_PRINT(logic.printBoard());
             return evalStrategy->evaluate(&logic, isWhite);
         }
 
@@ -80,39 +82,35 @@ int BestEvalMoveStrategy::betaAlphaMinimax(ChessLogic &logic, int beta, int alph
         //         return logic.transpositionTable[positionHash]; // Return the cached score
         // }
 
-        DEBUG_PRINT("BEFORE init bestscore");
-        int bestScore = isWhite ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
+        
 
-        for (const auto &move : legalMoves) {
+        for (const ChessLogic::Move move : legalMoves) {
 
             logic.makeMove(move);
             
-            DEBUG_PRINT("BEFORE init score");
             int score = betaAlphaMinimax(logic, beta, alpha, evalStrategy, !isWhite, depth - 1, stopTime);
+
+            logic.undoMove();
 
             if (isWhite) {  // pick negative score for black & positive for white
 
-                DEBUG_PRINT("BEFORE update bestscore white");
                 bestScore = std::max(bestScore, score);
                 alpha = std::max(alpha, score);
                 if (beta <= alpha) {
-                    logic.undoMove();
                     break;
                 }
 
             } else {
-                DEBUG_PRINT("BEFORE update bestscore black");
                 bestScore = std::min(bestScore, score);
                 beta = std::min(beta, score);
                 if (alpha >= beta) {
-                    logic.undoMove();
                     break;
                 }
             }
 
-            logic.undoMove();
+            
         }
-        DEBUG_PRINT("BEFORE return bestScore" << bestScore);
+        
         return bestScore;
     }
 

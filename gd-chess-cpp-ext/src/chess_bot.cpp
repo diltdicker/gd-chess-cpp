@@ -201,8 +201,8 @@ ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chro
     ChessLogic::Move bestMove = ChessLogic::Move();
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
-        DEBUG_PRINT("GET BEST  MOVE depth: " << depth);
-        // botLogic.transpositionTable.clear(); // Clear the transposition table before each search
+        // DEBUG_PRINT("GET BEST  MOVE depth: " << depth);
+        botLogic.transpositionTable.clear(); // Clear the transposition table before each search
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
             DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");

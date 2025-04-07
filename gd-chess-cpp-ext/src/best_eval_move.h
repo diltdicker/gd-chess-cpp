@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <chrono>
+#include <limits>
+// #include <iostream>
+#include <random>
 #include "chess_logic.h"
 #include "move_strategy.h"
 
@@ -23,17 +26,10 @@ public:
 
 
 protected:
-    // int minimax(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
-    //             short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
-
-
-    // int minimax2(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
-    //     short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
     int betaAlphaMinimax(ChessLogic &logic, int beta, int alpha, EvaluationStrategy* evalStrategy, bool isWhite, 
         short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
-    std::string printScores(std::vector<ChessLogic::evalMove> scores);
 };
 
 #endif

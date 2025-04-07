@@ -42,6 +42,7 @@ class GDChessBot:
         print('gonna run input fen')
         if not self.uci_instance:
             raise RuntimeError("UCI instance not created.")
+        self.library.inputFEN.argtypes = [ctypes.POINTER(ChessUCI),  ctypes.c_char_p]
         self.library.inputFEN(self.uci_instance, fen.encode())
         print('python input fen working')
 
@@ -54,6 +55,7 @@ class GDChessBot:
     def get_bot_move(self, search_depth: int, time_limit: int) -> str:
         if not self.uci_instance:
             raise RuntimeError("UCI instance not created.")
+        self.library.getBotMove.argtypes = [ctypes.POINTER(ChessUCI), ctypes.c_short, ctypes.c_int]
         self.library.getBotMove.restype = ctypes.c_char_p
         return self.library.getBotMove(self.uci_instance, search_depth, time_limit).decode()
 
@@ -66,6 +68,7 @@ class GDChessBot:
     def make_move(self, move: str):
         if not self.uci_instance:
             raise RuntimeError("UCI instance not created.")
+        self.library.makeMove.argtypes = [ctypes.POINTER(ChessUCI),  ctypes.c_char_p]
         self.library.makeMove(self.uci_instance, move.encode())
 
     def set_option(self, option: str, value: str):

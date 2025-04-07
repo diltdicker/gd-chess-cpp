@@ -20,6 +20,8 @@ sources = Glob("src/*.cpp")
 
 if env["target"] == "template_debug":
     env.Append(CXXFLAGS=["-DDEBUG"])
+elif env["target"] == "template_release":
+    env.Append(CXXFLAGS=['-O3'])
 print("CXXFLAGS:", env['CXXFLAGS'])
 
 if env["platform"] == "macos":

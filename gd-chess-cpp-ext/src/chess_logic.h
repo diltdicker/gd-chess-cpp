@@ -14,7 +14,7 @@
 #include <bitset>
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n"
 #else
 #define DEBUG_PRINT(x)
 #endif
@@ -34,10 +34,13 @@ struct castleRights
         wKingside(wKingside), wQueenside(wQueenside), bKingside(bKingside), bQueenside(bQueenside) {}
 };
 
-struct moveHash
+struct evalMove
 {
     int score;
-    short depth;
+    std::string move;
+
+    evalMove(int score, std::string move) : score(score), move(move) {}
+
 };
 
 struct chessPiece

@@ -228,6 +228,7 @@ void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
     for (int i = 0; i < 64; ++i) {
         internalBoard[i] = inputBoard[i];
     }
+    DEBUG_PRINT("able to copy chessboard");
 }
 
 std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
@@ -458,7 +459,7 @@ void ChessLogic::emtpyMoveStack() {
     {
         castleStack.pop();
     }
-    
+    DEBUG_PRINT("able to empty move stack");
 }
 
 ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) const {

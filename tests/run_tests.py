@@ -1,17 +1,12 @@
 from behave import __main__ as behave_main
+from os import path
 
 if __name__ == "__main__":
     # Run the behave tests
-    behave_main.main()
-    # You can specify the path to your features directory if needed
-    # behave_main.main(args=["-i", "features"])
-    # Or use the default path
-    # behave_main.main(args=["features"])
-    # Or run specific feature files
-    # behave_main.main(args=["features/your_feature_file.feature"])
-    # Or run specific scenarios
-    # behave_main.main(args=["features/your_feature_file.feature:line_number"])
-    # Or run specific tags
-    # behave_main.main(args=["--tags=@your_tag"])
-    # Or run all tests
-    # behave_main.main(args=["features"])
+
+    feature_directory = path.join(path.dirname(__file__), "features")  # Adjust this path as necessary
+    print(feature_directory)
+    behave_main.main([feature_directory])
+
+
+        

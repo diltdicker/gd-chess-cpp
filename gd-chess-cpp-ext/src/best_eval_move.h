@@ -7,7 +7,7 @@
 #include "move_strategy.h"
 
 #ifdef DEBUG
-#define DEBUG_PRINT(x) std::cout << "Debug: " << x << "\n";
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x << "\n"
 #else
 #define DEBUG_PRINT(x)
 #endif
@@ -23,17 +23,17 @@ public:
 
 
 protected:
-    int minimax(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
-                short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
+    // int minimax(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
+    //             short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
 
-    int minimax2(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
-        short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
+    // int minimax2(ChessLogic &logic, EvaluationStrategy* evalStrategy, bool isWhite, 
+    //     short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
     int betaAlphaMinimax(ChessLogic &logic, int beta, int alpha, EvaluationStrategy* evalStrategy, bool isWhite, 
         short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
-    std::string printScores(std::vector<int> scores, int bestScore, bool isWhite, short depth);
+    std::string printScores(std::vector<ChessLogic::evalMove> scores);
 };
 
 #endif

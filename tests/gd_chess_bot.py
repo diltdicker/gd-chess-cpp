@@ -94,17 +94,19 @@ class GDChessBot:
         if not self.uci_instance:
             raise RuntimeError("UCI instance not created.")
         self.library.getGameResult.restype = ctypes.c_short
-        return self.library.getGameResult(self.uci_instance)
-    
-    # def debug_bot(self):
-    #     if not self.uci_instance:
-    #         raise RuntimeError("UCI instance not created.")
-    #     # self.library.debugBot.restype = ctypes.c_char_p
-    #     # color = self.library.debugBot(self.uci_instance, "color".encode()).decode()
-    #     self.library.debugBot.restype = ctypes.c_char_p
-    #     moves = self.library.debugBot(self.uci_instance, "moves".encode()).decode()
-    #     # print(f"Current turn: {color}")
-    #     print(f"availible moves: {moves}")
+        result = self.library.getGameResult(self.uci_instance)
+        if result == 0:
+            return "normal move"
+        elif result == 1:
+            return "check"
+        elif result == 2:
+            return "1 - 0"
+        elif result == 3:
+            return "0 - 1"
+        elif result == 4:
+            return "0.5 - 0.5"
+        else:
+            assert False, f"unknown game result {result}"
         
 
     def __del__(self):

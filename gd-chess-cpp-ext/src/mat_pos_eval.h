@@ -22,7 +22,7 @@ public:
     int evaluate(const ChessLogic * chessBoard, bool whitesTurn) override {
         int materialScore = materialEvalStrategy->evaluate(chessBoard, whitesTurn);
         int positionScore = positionEvalStrategy->evaluate(chessBoard, whitesTurn);
-        return (std::abs(materialScore) == std::numeric_limits<int>::max()) ? materialScore : materialScore + positionScore;
+        return materialScore + positionScore;
     }
 
 protected:

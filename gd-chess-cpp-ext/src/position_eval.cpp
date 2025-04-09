@@ -27,8 +27,9 @@ int PositionEvalStrategy::evaluate(const ChessLogic * chessBoard, bool whitesTur
 
     for (int i = 0; i < 64; ++i) {
         const auto &piece = board[i];
-        if (piece.type == 0) continue; // Skip empty squares
-
+        if (piece.type == 0) {
+            continue; // Skip empty squares
+        }
         switch (piece.type) {
             case 1: // Pawn
                 if (endgame) {

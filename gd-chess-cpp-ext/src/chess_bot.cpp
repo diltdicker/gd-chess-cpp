@@ -199,12 +199,19 @@ const std::string ChessBot::getFEN() {
 
 ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
     ChessLogic::Move bestMove = ChessLogic::Move();
+    int bestScore = -1;
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
-        bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
+        const ChessLogic::evalMove aMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
             DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");
+            if (std::abs(aMove.score) > bestScore) {
+                bestMove = aMove.move; // if the bestMove on the deepest search doesn't look promising use the last found bestMove
+            }
             break; // Stop if time limit is reached
+        } else {
+            bestMove = aMove.move;
+            bestScore = aMove.score;
         }
     }
     return bestMove;

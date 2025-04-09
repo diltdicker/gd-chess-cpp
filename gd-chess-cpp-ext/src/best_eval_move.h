@@ -20,7 +20,7 @@ class BestEvalMoveStrategy : public MoveStrategy {
 public:
     BestEvalMoveStrategy() = default;
 
-    ChessLogic::Move getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
+    ChessLogic::evalMove getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
                                  bool isWhite, short searchDepth, 
                                  std::chrono::time_point<std::chrono::steady_clock> stopTime) override;
 

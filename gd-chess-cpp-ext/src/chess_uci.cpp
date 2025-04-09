@@ -65,13 +65,6 @@ extern "C" {
         }
     }
 
-    const char * debugBot(void * uci_instance, const char * option) {
-        if (uci_instance) {
-            return static_cast<ChessUCI *>(uci_instance)->debugBot(option);
-        }
-        return nullptr;
-    }
-
     void makeMove(void * uci_instance, const char * move) {
         if (uci_instance) {
             static_cast<ChessUCI *>(uci_instance)->makeMove(move);
@@ -232,34 +225,3 @@ void ChessUCI::freeMoveHistory(char **moveHistory) {
     }
 }
 
-char * ChessUCI::debugBot(const char * property) {
-    if (chessBot) {
-        static std::string joinedStrategies;
-        const auto processStrategies = [&](const std::vector<std::string>& strategies) {
-            joinedStrategies = std::accumulate(
-                std::next(strategies.begin()), strategies.end(), strategies[0],
-                [](std::string a, const std::string& b) { return a + "," + b; });
-            return const_cast<char *>(joinedStrategies.c_str());
-        };
-
-        if (strcmp(property, "moves") == 0) {
-            // return const_cast<char *>(chessBot->getAvailableMoves().c_str());
-            return const_cast<char *>("");
-        } else if (strcmp(property, "color") == 0) {
-            return const_cast<char *>(chessBot->whosTurn().c_str());
-        } else if (strcmp(property, "list_move_strategy") == 0) {
-            return processStrategies(chessBot->listMoveStrategies());
-        } else if (strcmp(property, "list_eval_strategy") == 0) {
-            return processStrategies(chessBot->listEvalStrategies());
-        } else if (strcmp(property, "current_move_strategy") == 0) {
-            return const_cast<char *>(chessBot->getCurrentMoveStrategy().c_str());
-        } else if (strcmp(property, "current_eval_strategy") == 0) {
-            return const_cast<char *>(chessBot->getCurrentEvalStrategy().c_str());
-        } else {
-            static std::string errorMsg = "Unknown property: ";
-            errorMsg += property;
-            return const_cast<char *>(errorMsg.c_str());
-        }
-    }
-    return nullptr;
-}

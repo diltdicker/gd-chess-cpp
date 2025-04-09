@@ -34,14 +34,7 @@ struct castleRights
         wKingside(wKingside), wQueenside(wQueenside), bKingside(bKingside), bQueenside(bQueenside) {}
 };
 
-struct evalMove
-{
-    int score;
-    std::string move;
 
-    evalMove(int score, std::string move) : score(score), move(move) {}
-
-};
 
 struct chessPiece
 {
@@ -85,6 +78,14 @@ struct chessPiece
             : from(other.from), to(other.to), promotion(other.promotion),
                 capture(other.capture), color(other.color), piece(other.piece), moveType(other.moveType) {}
     };
+
+    struct evalMove {
+    int score;
+    ChessLogic::Move move;
+
+    evalMove(int score,ChessLogic::Move move) : score(score), move(move) {}
+
+};
 
     // change to stack type TODO
     bool whiteQCastle = true;
@@ -169,7 +170,6 @@ struct chessPiece
 
     short stringToSquare(const std::string &squareStr) const;
 
-
 protected:
 
     chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
@@ -182,7 +182,6 @@ private:
     uint64_t zobristCastling[4];   // Random values for castling rights
     uint64_t zobristEnPassant[8];  // Random values for en passant files
     uint64_t zobristTurn;          // Random value for the player's turn
-
 
 };
 

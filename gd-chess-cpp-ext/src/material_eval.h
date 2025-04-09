@@ -18,7 +18,7 @@ protected:
     const short KNIGHT_VALUE = 320;
     const short BISHOP_VALUE = 330;
     const short ROOK_VALUE = 500;
-    const short KING_VALUE = 20000;
+    const short KING_VALUE = 30000;
     const short QUEEN_VALUE = 900;
 
     const short pieceValues[7] = {

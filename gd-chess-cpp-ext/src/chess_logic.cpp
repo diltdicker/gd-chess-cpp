@@ -234,8 +234,7 @@ void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
 }
 
 std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
-    std::vector<Move> legalMoves;
-    legalMoves.clear();
+    std::vector<Move> pseudoMoves;
     short color = isWhite ? 1 : 2;
     short opponentColor = isWhite ? 2 : 1;
 
@@ -253,7 +252,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
 
                 Move move = translateMove(fromSquares.at(i), toSquares.at(j));
 
-                if (isMoveLegal(move)) {
+                if (isMovePsuedoLegal(move)) {
 
                     if (move.piece == 1) { // add promotions
                         if ((move.color == 1 && move.to / 8 == 7) || (move.color == 2 && move.to / 8 == 0)) {
@@ -265,26 +264,40 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
                             bishopPromo.promotion = 3;
                             Move kightPromo = Move(move);
                             kightPromo.promotion = 2;
-                            legalMoves.push_back(queenPromo);
-                            legalMoves.push_back(rookPromo);
-                            legalMoves.push_back(bishopPromo);
-                            legalMoves.push_back(kightPromo);
+                            pseudoMoves.push_back(queenPromo);
+                            pseudoMoves.push_back(rookPromo);
+                            pseudoMoves.push_back(bishopPromo);
+                            pseudoMoves.push_back(kightPromo);
                         } else {
 
-                            legalMoves.push_back(move); // normal pawn move
+                            pseudoMoves.push_back(move); // normal pawn move
                         }
 
                     } else {
-                        legalMoves.push_back(move);
+                        pseudoMoves.push_back(move);
                     }
-
                     
                 }
             }
         }
     }
+    // sort moves based on captures and pieces
+    if (pseudoMoves.size() > 8) {
+        std::stable_sort(pseudoMoves.begin(), pseudoMoves.end(), [](ChessLogic::Move a, ChessLogic::Move b) {
+            if (a.capture || b.capture) {
+                return a.capture > b.capture;
+            }
+            return (a.piece < b.piece && a.piece != 1);
+        });
+    }
 
-    
+    std::vector<Move> legalMoves;
+
+    for (const auto move : pseudoMoves) {
+        if (isMoveLegal(move)) {
+            legalMoves.push_back(move);
+        }
+    }
 
     return legalMoves;
 }
@@ -353,9 +366,6 @@ void ChessLogic::makeMove(const Move &move) {
 }
 
 bool ChessLogic::isMoveLegal(const Move &move) {
-    if (!isMovePsuedoLegal(move)) {
-        return false; // Move is not pseudo-legal
-    }
     bool isLegal = true;
     // Temporarily make the move
     makeMove(move);

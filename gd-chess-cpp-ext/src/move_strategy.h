@@ -10,7 +10,7 @@ class MoveStrategy {
 
         virtual ~MoveStrategy() = default;
 
-        virtual ChessLogic::Move getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
+        virtual ChessLogic::evalMove getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
              bool isWhite, short maxDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime) = 0; 
 };
 

@@ -50,7 +50,6 @@ extern "C" {
 
     EXPORT_SYMBOL short getGameResult(void * uci_instance);
 
-    EXPORT_SYMBOL const char * debugBot(void * uci_instance, const char * property);
 }
 
 class ChessUCI {
@@ -85,8 +84,6 @@ public:
 
     // returns 1 if a check, 2 if white wins, 3 if black wins, 4 if draw, 0 if no result
     short getGameResult();
-
-    char * debugBot(const char * property);
 
 protected:
 

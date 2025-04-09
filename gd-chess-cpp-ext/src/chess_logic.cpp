@@ -287,6 +287,9 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
             if (a.capture || b.capture) {
                 return a.capture > b.capture;
             }
+            if (a.piece == 1 && b.piece == 1) {
+               return (a.to % 8 > 2 && a.to % 8 < 5); // flank pawns last 
+            }
             return (a.piece < b.piece && a.piece != 1);
         });
     }

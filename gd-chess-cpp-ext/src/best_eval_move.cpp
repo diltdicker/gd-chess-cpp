@@ -19,7 +19,7 @@ ChessLogic::evalMove BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evalua
     int low = std::numeric_limits<int>::min();
     int high = std::numeric_limits<int>::max();
     int bestScore = isWhite ? low : high;
-    
+    int jiggle = 30; // randomize choice between equivalent moves
 
     for (const auto &move : legalMoves) {
         logic.makeMove(move);
@@ -29,7 +29,13 @@ ChessLogic::evalMove BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evalua
 
         logic.undoMove();
 
-        if (score == bestScore) {
+        // best score == 100 (white)
+        // new score = 80
+        // 80 + 25 > 100 and 80 - 25 < 100
+        // best score == -220
+        // new score == -240
+        // -240 + 25 > -220  and < -240 - 25 < -220
+        if (score + jiggle >= bestScore && score - jiggle <= bestScore) {
             bestMoves.push_back(move);
 
         } else if (isWhite) {
@@ -56,6 +62,7 @@ ChessLogic::evalMove BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evalua
     if (bestMoves.size() > 1) {
         std::uniform_int_distribution<> dis(0, bestMoves.size() - 1); // Uniform distribution in the range [0, size-1]
         // Get random index
+        // DEBUG_PRINT("Rand move selection: " << logic.printMoves(bestMoves));
         return ChessLogic::evalMove(bestScore, bestMoves.at(dis(rGen)));
     } else {
         return ChessLogic::evalMove(bestScore, bestMoves.back());

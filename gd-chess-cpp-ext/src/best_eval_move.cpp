@@ -8,7 +8,6 @@ ChessLogic::Move BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evaluation
     if (legalMoves.empty()) {
         return ChessLogic::Move(); // Return a null move if no legal moves are available
     }
-    DEBUG_PRINT("allowed moves: " << logic.printMoves(legalMoves));
 
     std::vector<ChessLogic::Move> bestMoves;
     bestMoves.push_back(ChessLogic::Move()); // null move
@@ -19,17 +18,9 @@ ChessLogic::Move BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evaluation
 
     for (const auto &move : legalMoves) {
         logic.makeMove(move);
-
-        // if (logic.isInCheck(!isWhite) && logic.getLegalMoves(!isWhite).size() == 0) { // Skip moves that put the king in check
-        //     DEBUG_PRINT("Fist move checkmate: " << logic.translateMoveToString(move));
-        //     logic.undoMove();
-        //     return move; // Return the move that puts the opponent in checkmate
-        // }
         
         // Perform recursive search
         int score = betaAlphaMinimax(logic, high, low, evalStrategy, !isWhite, searchDepth - 1, stopTime); // score will be positive for white, negative for black
-
-        DEBUG_PRINT("evaluating move: " << logic.translateMoveToString(move) << "score: " << score);
 
         logic.undoMove();
 
@@ -56,8 +47,6 @@ ChessLogic::Move BestEvalMoveStrategy::getBestMove(ChessLogic &logic, Evaluation
         }
     }
 
-    DEBUG_PRINT("final moves to choose from: " << logic.printMoves(bestMoves));
-    // ChessLogic::Move
     std::random_device rd;  // Seed from hardware
     std::mt19937 gen(rd()); // Standard mersenne_twister_engine
     std::uniform_int_distribution<> dis(0, bestMoves.size() - 1); // Uniform distribution in the range [0, size-1]
@@ -71,18 +60,10 @@ int BestEvalMoveStrategy::betaAlphaMinimax(ChessLogic &logic, int beta, int alph
     short depth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
         int bestScore = isWhite ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
 
-        
-
-        // uint64_t positionHash = logic.hashPosition(isWhite);
-
-        // if (logic.transpositionTable.find(positionHash) != logic.transpositionTable.end()) {
-        //     return logic.transpositionTable[positionHash]; // Return the cached score
-        // }
 
         const std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
         if (legalMoves.size() == 0) {
             if (logic.isInCheck(isWhite)) {
-                DEBUG_PRINT("found checkmate " << logic.printMoves(logic.getMoveHistory()));
                 return isWhite ? -30000 + (depth * -1000) : 30000 + (depth * 1000);
             }
             return 0; // stalemate

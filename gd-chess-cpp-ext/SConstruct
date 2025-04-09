@@ -4,7 +4,7 @@ import sys
 
 env = SConscript("godot-cpp/SConstruct")
 
-output_dir = "../addons/gd_chess_cpp/bin/"
+output_dir = "../build/"
 
 # For reference:
 # - CCFLAGS are compilation flags shared between C and C++

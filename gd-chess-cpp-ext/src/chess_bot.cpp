@@ -6,8 +6,8 @@ ChessBot::ChessBot() {
     // moveStrategy = new RandomMoveStrategy();
     currentMoveStrategy = BEST_EVAL_MOVE_STRATEGY;
     // currentMoveStrategy = RANDOM_STRATEGY;
-    evalStrategy = new MaterialEvalStrategy();
-    currentEvalStrategy = MATERIAL_EVAL_STRATEGY;
+    evalStrategy = new MatPosEvalStrategy();
+    currentEvalStrategy = MAT_POS_EVAL_STRATEGY;
     this->setFEN(DEFAULT_FEN);
 }
 
@@ -201,8 +201,6 @@ ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chro
     ChessLogic::Move bestMove = ChessLogic::Move();
 
     for (short depth = 1; depth <= searchDepth; ++depth) {
-        // DEBUG_PRINT("GET BEST  MOVE depth: " << depth);
-        botLogic.transpositionTable.clear(); // Clear the transposition table before each search
         bestMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
             DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");

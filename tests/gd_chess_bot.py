@@ -116,9 +116,9 @@ class GDChessBot:
     def get_default_library_path():
         system = platform.system()
         if system == "Windows":
-            return os.path.join(os.path.dirname(__file__), "..", "addons", "gd_chess_cpp", "bin", "clibgd_chess.windows.template_debug.x86_64.dll")
+            return os.path.join(os.path.dirname(__file__), "..", "build", "libgd_chess.windows.template_debug.x86_64.dll")
         elif system in ["Linux", "Darwin"]:  # Darwin is macOS
-            return os.path.join(os.path.dirname(__file__), "..",  "addons", "gd_chess_cpp", "bin", "libgd_chess.linux.template_debug.x86_64.so")
+            return os.path.join(os.path.dirname(__file__), "..",  "build", "libgd_chess.linux.template_debug.x86_64.so")
         else:
             raise RuntimeError(f"Unsupported platform: {system}")
 

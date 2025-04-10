@@ -62,14 +62,12 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
 
     // Handle pawn moves
     if (move.piece == 1) { // Pawn
-        // DEBUG_PRINT("pawn move: " << translateMoveToString(move) << " to suare: " << move.to << " from square: " << move.from);
         short direction = (move.color == 1) ? -8 : 8; // White moves up, Black moves down
         if (move.to == move.from + direction) { // Single square forward
             if (internalBoard[move.to].type != 0) {
                 return false; // Cannot move forward into an occupied square
             }
         } else if (move.to == move.from + 2 * direction) { // Double square forward
-            // DEBUG_PRINT("pawn doublevc move: " << translateMoveToString(move));
             if ((move.color == 1 && move.from / 8 != 6) || (move.color == 2 && move.from / 8 != 1)) {
                 return false; // Double move only allowed from starting rank
             }
@@ -77,7 +75,6 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
                 return false; // Path must be clear
             }
         } else if ((move.to == move.from + direction - 1 && move.from % 8 != 0) || (move.to == move.from + direction + 1 && move.from % 8 != 7)) { // Diagonal capture
-            // DEBUG_PRINT("pawn attack move: " << translateMoveToString(move));
             if (internalBoard[move.to].type == 0) {
                 if (move.to != enPassantSquare || move.moveType != 3) {
                     return false; // Must capture a piece or be a valid en passant move
@@ -222,6 +219,21 @@ ChessLogic::ChessLogic() {
         internalBoard[i] = {0, 0}; // Empty piece
     }
 }
+
+ChessLogic::ChessLogic(chessPiece (&board)[], std::stack<Move> moveStack, std::stack<castleRights> castleStack, 
+    bool wKC, bool wQC, bool bKC, bool bQC, int ePSq) {
+        for (int i = 0; i < 64; i++) {
+            this->internalBoard[i] = chessPiece(board[i].color, board[i].type);
+        }
+        this->whiteKCastle = wKC;
+        this->whiteQCastle = wQC;
+        this->blackQCastle = bQC;
+        this->blackKCastle = bKC;
+        this->enPassantSquare = ePSq;
+
+        this->moveStack = moveStack;
+        this->castleStack = castleStack;
+    }
 
 ChessLogic::~ChessLogic() {
     // Destructor logic if needed

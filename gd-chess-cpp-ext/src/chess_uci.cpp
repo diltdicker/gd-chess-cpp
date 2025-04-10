@@ -52,6 +52,13 @@ extern "C" {
         return nullptr;
     }
 
+    const char * getBotMoveThreaded(void * uci_instance, short searchDepth, int timeLimit, short threadCount) {
+        if (uci_instance) {
+            return static_cast<ChessUCI *>(uci_instance)->getBotMove(searchDepth, timeLimit, threadCount);
+        }
+        return nullptr;
+    }
+
     bool validateMove(void * uci_instance, const char * move) {
         if (uci_instance) {
             return static_cast<ChessUCI *>(uci_instance)->validateMove(move);
@@ -150,6 +157,14 @@ char * ChessUCI::getBotMove(short searchDepth, int timeLimit) {
     // Get the best move from the chess bot
     if (chessBot) {
         return const_cast<char *>(chessBot->getBestMove(searchDepth, timeLimit).c_str());
+    }
+    return nullptr;
+}
+
+char * ChessUCI::getBotMove(short searchDepth, int timeLimit, short threadCount) {
+    // Get the best move from the chess bot
+    if (chessBot) {
+        return const_cast<char *>(chessBot->getBestMove(searchDepth, timeLimit, threadCount).c_str());
     }
     return nullptr;
 }

@@ -42,6 +42,8 @@ extern "C" {
 
     EXPORT_SYMBOL const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
 
+    EXPORT_SYMBOL const char * getBotMoveThreaded(void * uci_instance, short searchDepth, int timeLimit, short threadCount);
+
     EXPORT_SYMBOL bool validateMove(void * uci_instance, const char * move);
 
     EXPORT_SYMBOL void makeMove(void * uci_instance, const char * move);
@@ -73,6 +75,8 @@ public:
     void makeMove(const char * move);
 
     char * getBotMove(short searchDepth, int timeLimit);
+
+    char * getBotMove(short searchDepth, int timeLimit, short threadCount);
 
     void setOption(const char * option, const char * value);
 

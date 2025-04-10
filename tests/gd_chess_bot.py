@@ -58,6 +58,13 @@ class GDChessBot:
         self.library.getBotMove.argtypes = [ctypes.POINTER(ChessUCI), ctypes.c_short, ctypes.c_int]
         self.library.getBotMove.restype = ctypes.c_char_p
         return self.library.getBotMove(self.uci_instance, search_depth, time_limit).decode()
+    
+    def get_bot_move_threaded(self, search_depth: int, time_limit: int, thread_cnt: int) -> str:
+        if not self.uci_instance:
+            raise RuntimeError("UCI instance not created.")
+        self.library.getBotMoveThreaded.argtypes = [ctypes.POINTER(ChessUCI), ctypes.c_short, ctypes.c_int,  ctypes.c_short]
+        self.library.getBotMoveThreaded.restype = ctypes.c_char_p
+        return self.library.getBotMoveThreaded(self.uci_instance, search_depth, time_limit, thread_cnt).decode()
 
     def validate_move(self, move: str) -> bool:
         if not self.uci_instance:

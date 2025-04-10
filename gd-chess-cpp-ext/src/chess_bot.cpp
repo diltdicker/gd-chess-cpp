@@ -200,21 +200,57 @@ const std::string ChessBot::getFEN() {
 ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
     ChessLogic::Move bestMove = ChessLogic::Move();
     int bestScore = -1;
-
+    short lastDepth = 0;
     for (short depth = 1; depth <= searchDepth; ++depth) {
         const ChessLogic::evalMove aMove = moveStrategy->getBestMove(botLogic, evalStrategy, isWhiteTurn, depth, stopTime);
         if (std::chrono::steady_clock::now() >= stopTime) {
-            DEBUG_PRINT("Time limit termination - iterativeDeepeningSearch");
             if (std::abs(aMove.score) > bestScore) {
                 bestMove = aMove.move; // if the bestMove on the deepest search doesn't look promising use the last found bestMove
             }
+
             break; // Stop if time limit is reached
+
         } else {
             bestMove = aMove.move;
             bestScore = aMove.score;
         }
+
+        lastDepth = depth;
     }
+    DEBUG_PRINT("search reached depth: " << lastDepth);
+    DEBUG_PRINT("search reached depth: " << lastDepth);
+    
     return bestMove;
+}
+
+ChessLogic::Move ChessBot::iterativeDeepeningSearch(short searchDepth, short threadCount, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
+
+    std::mutex mtx;
+    std::vector<ChessLogic::evalMove> bestMoveSet;
+    bestMoveSet.push_back(ChessLogic::evalMove(0, ChessLogic::Move()));
+    std::stack<short> depthStack;
+    short lastDepth = 0;
+    for (int i = searchDepth; i > 0; i--) {
+        depthStack.push(i);
+    }
+    std::vector<std::thread> threads;
+
+    // start threads
+    for (int i = 0; i < threadCount; i++) {
+        threads.push_back(
+            std::thread(&MoveStrategy::getBestMoveThreaded, moveStrategy, std::ref(botLogic), evalStrategy, isWhiteTurn, std::ref(depthStack),
+            std::ref(bestMoveSet), std::ref(mtx), std::ref(lastDepth), stopTime));
+    }
+
+    // join threads
+    for (auto &t : threads) {
+        t.join();
+    }
+
+    DEBUG_PRINT("reached threaded depth : " << lastDepth);
+    DEBUG_PRINT("reached threaded depth : " << lastDepth);
+
+    return bestMoveSet.back().move;
 }
 
 bool ChessBot::isCheck() const {

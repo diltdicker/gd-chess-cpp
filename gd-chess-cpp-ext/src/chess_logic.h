@@ -93,9 +93,16 @@ struct chessPiece
     bool blackQCastle = true;
     bool blackKCastle = true;
     int enPassantSquare = -1;
+    chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
+
+    std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
+    std::stack<castleRights> castleStack; // stack to keep track of castling rights history
 
     // Constructor
     ChessLogic();
+
+    ChessLogic(chessPiece (&board)[], std::stack<Move> moveStack, std::stack<castleRights> castleStack, 
+        bool wKC, bool wQC, bool bKC, bool bQC, int ePSq);
 
     // Destructor
     ~ChessLogic();
@@ -171,11 +178,6 @@ struct chessPiece
     short stringToSquare(const std::string &squareStr) const;
 
 protected:
-
-    chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
-
-    std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
-    std::stack<castleRights> castleStack; // stack to keep track of castling rights history
 
 private:
     uint64_t zobristTable[64][12]; // Random values for pieces on squares

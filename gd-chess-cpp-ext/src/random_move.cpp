@@ -14,6 +14,12 @@ ChessLogic::evalMove RandomMoveStrategy::getBestMove(ChessLogic &logic, Evaluati
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, legalMoves.size() - 1);
     int randomIndex = dis(gen);
-    
+
     return ChessLogic::evalMove(0, legalMoves[randomIndex]);
 }
+
+
+ChessLogic::evalMove RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy, 
+    bool isWhite, short maxDepth, short threadCount, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
+        return getBestMove(logic, evalStrategy, isWhite, maxDepth, stopTime);
+    }

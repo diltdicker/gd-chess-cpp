@@ -65,7 +65,15 @@ public:
         return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, stopTime));
     }
 
+    std::string getBestMove(short searchDepth, int timeLimit, short threadCount)
+    {
+        std::chrono::time_point<std::chrono::steady_clock> stopTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeLimit);
+        return botLogic.translateMoveToString(iterativeDeepeningSearch(searchDepth, threadCount, stopTime));
+    }
+
     ChessLogic::Move iterativeDeepeningSearch(short searchDepth, std::chrono::time_point<std::chrono::steady_clock> stopTime);
+
+    ChessLogic::Move iterativeDeepeningSearch(short searchDepth, short threadCount, std::chrono::time_point<std::chrono::steady_clock> stopTime);
 
     bool validateMove(const std::string &move);
 

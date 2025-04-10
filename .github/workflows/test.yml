@@ -10,7 +10,7 @@ jobs:
       - name: Check out repository code for branch ${{ github.ref }}
         uses: actions/checkout@v4
       - name: setup git module repo
-        run: cd gd-chess-cpp-ext/odgot-cpp; git submodule update --init --recursive
+        run: ls -l; cd gd-chess-cpp-ext/godot-cpp; git submodule update --init --recursive
       - run: cd ..; pwd
       - name: build project
         run: scons

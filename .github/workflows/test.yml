@@ -1,1 +1,21 @@
-name: Run Position and Move tests
+name: Chess Engine Movement and position tests
+run-name: ${{ github.actor }} is building the Godot Chess engine!
+on: [push]
+jobs:
+  Build-and-Test-GD-ChessCpp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install deps
+        run: apt-get install build-essential manpages-dev scons
+      - name: Check out repository code for branch ${{ github.ref }}
+        uses: actions/checkout@v4
+      - name: setup git module repo
+        run: cd gd-chess-cpp-ext/odgot-cpp; git submodule update --init --recursive
+        run: cd ..; pwd
+      - name: build project
+        run: scons
+      - name: prepare python
+        run: cd ../tests; python3 -m pip install -r requirements.txt
+      - name: run the tests
+        run: python3 run_tests.py
+

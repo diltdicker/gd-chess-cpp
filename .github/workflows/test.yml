@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: install deps
-        run: apt-get install build-essential manpages-dev scons
+        run: sudo apt-get install build-essential manpages-dev scons
       - name: Check out repository code for branch ${{ github.ref }}
         uses: actions/checkout@v4
       - name: setup git module repo

@@ -19,7 +19,7 @@ env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
 
 if env["target"] == "template_debug":
-    env.Append(CXXFLAGS=["-DDEBUG", "-O2"])
+    env.Append(CXXFLAGS=["-DDEBUG", "-O0"])
 elif env["target"] == "template_release":
     env.Append(CXXFLAGS=['-O3'])
 print("CXXFLAGS:", env['CXXFLAGS'])

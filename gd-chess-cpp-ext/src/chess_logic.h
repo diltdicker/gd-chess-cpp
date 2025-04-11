@@ -5,9 +5,36 @@
 #include <string>
 #include <stack>
 #include <limits>
+#include <cstdint>
+#include <unordered_map>
+#include <stdexcept>
+#include <iostream>
+#include <functional>
+#include <random>
+#include <bitset>
+
+#ifdef DEBUG
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
+#else
+#define DEBUG_PRINT(x)
+#endif
 
 class ChessLogic {
 public:
+
+
+struct castleRights
+{
+    bool wKingside;
+    bool wQueenside;
+    bool bKingside;
+    bool bQueenside;
+
+    castleRights(bool wKingside = false, bool wQueenside = false, bool bKingside = false, bool bQueenside = false) : 
+        wKingside(wKingside), wQueenside(wQueenside), bKingside(bKingside), bQueenside(bQueenside) {}
+};
+
+
 
 struct chessPiece
 {
@@ -22,6 +49,11 @@ struct chessPiece
         }
         return *this;
     }
+
+    chessPiece(const chessPiece& other) : color(other.color), type(other.type) {}
+
+    // Constructor for chessPiece
+    chessPiece(short color = 0, short type = 0) : color(color), type(type) {}
 };
 
     // Represents a move in chess (e.g., "e2e4")
@@ -36,23 +68,49 @@ struct chessPiece
 
         // Default constructor for a null move
         Move() 
-            : from(-1), to(-1), promotion(-1), capture(-1), color(-1), piece(-1), moveType(-1) {}
+            : from(-1), to(-1), promotion(0), capture(0), color(0), piece(0), moveType(0) {}
+
+        Move(short from, short to, short promotion, short capture, short color, short piece, short moveType) :
+            from(from), to(to), promotion(promotion), capture(capture), color(color), piece(piece), moveType(moveType) {}
+
+        // Copy constructor (deep copy isn't needed here, just copying the fields)
+        Move(const Move& other)
+            : from(other.from), to(other.to), promotion(other.promotion),
+                capture(other.capture), color(other.color), piece(other.piece), moveType(other.moveType) {}
     };
 
+    struct evalMove {
+    int score;
+    ChessLogic::Move move;
+
+    evalMove(int score,ChessLogic::Move move) : score(score), move(move) {}
+
+};
+
+    // change to stack type TODO
     bool whiteQCastle = true;
     bool whiteKCastle = true;
     bool blackQCastle = true;
     bool blackKCastle = true;
     int enPassantSquare = -1;
+    chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
+
+    std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
+    std::stack<castleRights> castleStack; // stack to keep track of castling rights history
 
     // Constructor
     ChessLogic();
+
+    ChessLogic(chessPiece (&board)[], std::stack<Move> moveStack, std::stack<castleRights> castleStack, 
+        bool wKC, bool wQC, bool bKC, bool bQC, int ePSq);
 
     // Destructor
     ~ChessLogic();
 
     // Get all legal moves for the current board position
     std::vector<Move> getLegalMoves(bool isWhite);
+
+    std::string printLegalMoves(const std::vector<Move> moves) const;
 
     bool isMoveLegal(const Move &move);
 
@@ -66,7 +124,7 @@ struct chessPiece
 
     void emtpyMoveStack();
 
-    bool isInCheck(short color) const;
+    bool isInCheck(bool isWhite) const;
 
     // Undo the last move
     void undoMove();
@@ -90,23 +148,44 @@ struct chessPiece
     // Helper methods for move generation and evaluation
     bool isMovePsuedoLegal(const Move &move) const;
 
-    u_int64_t getPieceBitBoard(short color, short piece) const;
-    u_int64_t getPieceBitBoard(short color) const;
-    u_int64_t getPawnMoveBitBoard(short color) const;
-    u_int64_t getKnightMoveBitBoard(short color) const;
-    u_int64_t getBishopMoveBitBoard(short color) const;
-    u_int64_t getRookMoveBitBoard(short color) const;
-    u_int64_t getQueenMoveBitBoard(short color) const;
-    u_int64_t getKingMoveBitBoard(short color) const;
+    uint64_t getColorBitBoard(short color) const;
+    uint64_t getPieceBitBoard(short color, short piece) const;
+    uint64_t getPawnMoveBitBoard(short color) const;
+    uint64_t getKnightMoveBitBoard(short color) const;
+    uint64_t getBishopMoveBitBoard(short color) const;
+    uint64_t getRookMoveBitBoard(short color) const;
+    uint64_t getQueenMoveBitBoard(short color) const;
+    uint64_t getKingMoveBitBoard(short color) const;
 
-    std::vector<short> bitboardToSquares(u_int64_t bitboard) const;
+    std::vector<short> bitboardToSquares(uint64_t bitboard) const;
+
+    std::string printBitBoard(uint64_t bitboard) const;
+
+    std::string printBoard() const;
+
+    uint64_t hashPosition(bool isWhiteTurn) const;
+
+    void initializeZobrist();
+
+    std::unordered_map<uint64_t, int> transpositionTable;
+
+    std::vector<Move> getMoveHistory() const;
+
+    std::string printMoves(std::vector<Move> moves) const;
+
+    std::string squareToString(short square) const;
+
+    short stringToSquare(const std::string &squareStr) const;
 
 protected:
 
-    chessPiece internalBoard[64]; // 8x8 chess board represented as an array of pieces
+private:
+    uint64_t zobristTable[64][12]; // Random values for pieces on squares
+    uint64_t zobristCastling[4];   // Random values for castling rights
+    uint64_t zobristEnPassant[8];  // Random values for en passant files
+    uint64_t zobristTurn;          // Random value for the player's turn
 
-    std::stack<Move> moveStack; // Stack to keep track of moves for undo functionality
-    
 };
+
 
 #endif // CHESS_LOGIC_H

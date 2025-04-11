@@ -9,7 +9,7 @@ public:
     virtual ~EvaluationStrategy() = default;
 
     // Evaluate the board position and return a score
-    virtual int evaluate(const ChessLogic::chessPiece* board) = 0;
+    virtual int evaluate(const ChessLogic * chessBoard, bool whitesTurn) = 0;
 
 };
 

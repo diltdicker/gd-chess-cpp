@@ -1,12 +1,12 @@
 #include "random_move.h"
 #include <random>
 
-ChessLogic::Move RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
+ChessLogic::evalMove RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy,
                                                  bool isWhite, short searchDepth, 
                                                  std::chrono::time_point<std::chrono::steady_clock> stopTime) {
     std::vector<ChessLogic::Move> legalMoves = logic.getLegalMoves(isWhite);
     if (legalMoves.empty()) {
-        return ChessLogic::Move(); // Return a null move if no legal moves are available
+        return ChessLogic::evalMove(0, ChessLogic::Move()); // Return a null move if no legal moves are available
     }
 
     // Generate a random index to select a move
@@ -15,5 +15,11 @@ ChessLogic::Move RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationSt
     std::uniform_int_distribution<> dis(0, legalMoves.size() - 1);
     int randomIndex = dis(gen);
 
-    return legalMoves[randomIndex];
+    return ChessLogic::evalMove(0, legalMoves[randomIndex]);
 }
+
+
+ChessLogic::evalMove RandomMoveStrategy::getBestMove(ChessLogic &logic, EvaluationStrategy* evalStrategy, 
+    bool isWhite, short maxDepth, short threadCount, std::chrono::time_point<std::chrono::steady_clock> stopTime) {
+        return getBestMove(logic, evalStrategy, isWhite, maxDepth, stopTime);
+    }

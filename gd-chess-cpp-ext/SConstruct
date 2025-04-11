@@ -4,7 +4,7 @@ import sys
 
 env = SConscript("godot-cpp/SConstruct")
 
-output_dir = "../addons/gd_chess_cpp/bin/"
+output_dir = "../build/"
 
 # For reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -17,6 +17,12 @@ output_dir = "../addons/gd_chess_cpp/bin/"
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
+
+if env["target"] == "template_debug":
+    env.Append(CXXFLAGS=["-DDEBUG", "-O0"])
+elif env["target"] == "template_release":
+    env.Append(CXXFLAGS=['-O3'])
+print("CXXFLAGS:", env['CXXFLAGS'])
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(

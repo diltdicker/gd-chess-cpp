@@ -24,6 +24,9 @@ namespace godot {
             void setBoardPosition(String fen);
             
             String inputUCI(String command);
+
+
+            
     };
 
 }

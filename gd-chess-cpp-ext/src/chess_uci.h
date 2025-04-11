@@ -13,14 +13,50 @@
 #ifndef CHESS_UCI_H
 #define CHESS_UCI_H
 
+#ifdef DEBUG
+#define DEBUG_PRINT(x) std::cout << "Debug: " << x <<  "\n";
+#else
+#define DEBUG_PRINT(x)
+#endif
+
 #include <string>
-#include "chess_logic.h"
+#include "chess_bot.h"
+
+extern "C" {
+    // exported functions with C linkage that can be called from other languages
+    EXPORT_SYMBOL void * createChessUci();
+
+    EXPORT_SYMBOL void testCMethod();
+
+    EXPORT_SYMBOL void destroyChessUci(void * instance);
+
+    EXPORT_SYMBOL const char * inputCommand(void * uci_instance, const char * command);
+
+    EXPORT_SYMBOL void inputFEN(void * uci_instance, const char * fen);
+
+    EXPORT_SYMBOL const char * exportFEN(void * uci_instance);
+
+    EXPORT_SYMBOL char ** getMoveHistoryPtr(void * uci_instance);
+
+    EXPORT_SYMBOL void freeMoveHistoryPtr(void * uci_instance, char **moveHistory);
+
+    EXPORT_SYMBOL const char * getBotMove(void * uci_instance, short searchDepth, int timeLimit);
+
+    EXPORT_SYMBOL const char * getBotMoveThreaded(void * uci_instance, short searchDepth, int timeLimit, short threadCount);
+
+    EXPORT_SYMBOL bool validateMove(void * uci_instance, const char * move);
+
+    EXPORT_SYMBOL void makeMove(void * uci_instance, const char * move);
+
+    EXPORT_SYMBOL void setOption(void * uci_instance, const char * option, const char * value);
+
+    EXPORT_SYMBOL short getGameResult(void * uci_instance);
+
+}
 
 class ChessUCI {
 
 public:
-
-    
 
     // Constructor
     ChessUCI();
@@ -30,32 +66,33 @@ public:
 
     char * handleUciCommand(const char * command);
 
-    void fenBoardUpdate(const char * fen);
-
+    void importFEN(const char * fen);
     
+    char * exportFEN();
+
+    bool validateMove(const char * move);
+
+    void makeMove(const char * move);
+
+    char * getBotMove(short searchDepth, int timeLimit);
+
+    char * getBotMove(short searchDepth, int timeLimit, short threadCount);
+
+    void setOption(const char * option, const char * value);
+
+    char * getEval();
+
+    char ** getMoveHistory();
+
+    void freeMoveHistory(char **moveHistory);
+
+    // returns 1 if a check, 2 if white wins, 3 if black wins, 4 if draw, 0 if no result
+    short getGameResult();
 
 protected:
 
-    const short PAWN_TYPE = 1;
-    const short KNIGHT_TYPE = 2;
-    const short BISHOP_TYPE = 3;
-    const short ROOK_TYPE = 4;
-    const short QUEEN_TYPE = 5;
-    const short KING_TYPE = 6;
-    const short WHITE_COLOR = 1;
-    const short BLACK_COLOR = 2;
-    const short EMPTY_SQUARE = 0;
-    
+    ChessBot * chessBot = nullptr;
 
-    ChessLogic::chessPiece chessBoard[64];
-    bool isWhiteTurn = true;
-    bool whiteQCastle = true;
-    bool whiteKCastle = true;
-    bool blackQCastle = true;
-    bool blackKCastle = true;
-    int enPassantSquare = -1;
-    int halfMoveClock = 0;
-    int fullMoveNumber = 1;
 
 private:
 

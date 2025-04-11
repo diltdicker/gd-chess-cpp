@@ -1,6 +1,4 @@
 #include "chess_logic.h"
-#include <stdexcept>
-#include <iostream>
 
 short ChessLogic::getSqureTopLeft(short square) const {
     return (square % 8 != 0 && square >= 8) ? square - 9 : -1;
@@ -38,7 +36,10 @@ short ChessLogic::getSqureXYrelative(short square, short x, short y) const {
     short newX = (square % 8) + x;
     short newY = (square / 8) + y;
     if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
-        return newY * 8 + newX;
+        short relativeSqure = (newY * 8) + newX;
+        if (relativeSqure >= 0 && relativeSqure < 64) {
+            return relativeSqure;
+        }
     }
     return -1;
 }
@@ -73,7 +74,7 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
             if (internalBoard[move.to].type != 0 || internalBoard[move.from + direction].type != 0) {
                 return false; // Path must be clear
             }
-        } else if (move.to == move.from + direction - 1 || move.to == move.from + direction + 1) { // Diagonal capture
+        } else if ((move.to == move.from + direction - 1 && move.from % 8 != 0) || (move.to == move.from + direction + 1 && move.from % 8 != 7)) { // Diagonal capture
             if (internalBoard[move.to].type == 0) {
                 if (move.to != enPassantSquare || move.moveType != 3) {
                     return false; // Must capture a piece or be a valid en passant move
@@ -191,8 +192,8 @@ bool ChessLogic::isMovePsuedoLegal(const Move &move) const {
     return true; // If all checks pass, the move is pseudo-legal
 }
 
-u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
-    u_int64_t bitboard = 0;
+uint64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
+    uint64_t bitboard = 0;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].color == color && internalBoard[i].type == piece) {
             bitboard |= (1ULL << i);
@@ -201,8 +202,8 @@ u_int64_t ChessLogic::getPieceBitBoard(short color, short piece) const {
     return bitboard;
 }
 
-u_int64_t ChessLogic::getPieceBitBoard(short color) const {
-    u_int64_t bitboard = 0;
+uint64_t ChessLogic::getColorBitBoard(short color) const {
+    uint64_t bitboard = 0;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].color == color) {
             bitboard |= (1ULL << i);
@@ -212,11 +213,27 @@ u_int64_t ChessLogic::getPieceBitBoard(short color) const {
 }
 
 ChessLogic::ChessLogic() {
+
     // Initialize the internal board with empty pieces
     for (int i = 0; i < 64; ++i) {
         internalBoard[i] = {0, 0}; // Empty piece
     }
 }
+
+ChessLogic::ChessLogic(chessPiece (&board)[], std::stack<Move> moveStack, std::stack<castleRights> castleStack, 
+    bool wKC, bool wQC, bool bKC, bool bQC, int ePSq) {
+        for (int i = 0; i < 64; i++) {
+            this->internalBoard[i] = chessPiece(board[i].color, board[i].type);
+        }
+        this->whiteKCastle = wKC;
+        this->whiteQCastle = wQC;
+        this->blackQCastle = bQC;
+        this->blackKCastle = bKC;
+        this->enPassantSquare = ePSq;
+
+        this->moveStack = moveStack;
+        this->castleStack = castleStack;
+    }
 
 ChessLogic::~ChessLogic() {
     // Destructor logic if needed
@@ -229,26 +246,71 @@ void ChessLogic::copyChessBoard(const chessPiece inputBoard[64]) {
 }
 
 std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
-    std::vector<Move> legalMoves;
+    std::vector<Move> pseudoMoves;
     short color = isWhite ? 1 : 2;
     short opponentColor = isWhite ? 2 : 1;
 
-    u_int64_t colorBitboard = getPieceBitBoard(color);
+    uint64_t colorBitboard = getColorBitBoard(color);
     std::vector<short> fromSquares = bitboardToSquares(colorBitboard); // own squares
     std::vector<short> toSquares = bitboardToSquares(
         getPawnMoveBitBoard(color) | getKnightMoveBitBoard(color) | getBishopMoveBitBoard(color) |
-        getRookMoveBitBoard(color) | getQueenMoveBitBoard(color) | getKingMoveBitBoard(color)
+        getRookMoveBitBoard(color) | getKingMoveBitBoard(color)
     ); 
     
-
     for (short i = 0; i < fromSquares.size() ; ++i) {
-        if (internalBoard[i].color == color) {
+        
+        if (internalBoard[fromSquares.at(i)].color == color) {
             for (short j = 0; j < toSquares.size(); ++j) {
+
                 Move move = translateMove(fromSquares.at(i), toSquares.at(j));
-                if (isMoveLegal(move)) {
-                    legalMoves.push_back(move);
+
+                if (isMovePsuedoLegal(move)) {
+
+                    if (move.piece == 1) { // add promotions
+                        if ((move.color == 1 && move.to / 8 == 7) || (move.color == 2 && move.to / 8 == 0)) {
+                            Move queenPromo = Move(move);
+                            queenPromo.promotion = 5;
+                            Move rookPromo = Move(move);
+                            rookPromo.promotion = 4;
+                            Move bishopPromo = Move(move);
+                            bishopPromo.promotion = 3;
+                            Move kightPromo = Move(move);
+                            kightPromo.promotion = 2;
+                            pseudoMoves.push_back(queenPromo);
+                            pseudoMoves.push_back(rookPromo);
+                            pseudoMoves.push_back(bishopPromo);
+                            pseudoMoves.push_back(kightPromo);
+                        } else {
+
+                            pseudoMoves.push_back(move); // normal pawn move
+                        }
+
+                    } else {
+                        pseudoMoves.push_back(move);
+                    }
+                    
                 }
             }
+        }
+    }
+    // sort moves based on captures and pieces
+    if (pseudoMoves.size() > 8) {
+        std::stable_sort(pseudoMoves.begin(), pseudoMoves.end(), [](ChessLogic::Move a, ChessLogic::Move b) {
+            if (a.capture || b.capture) {
+                return a.capture > b.capture;
+            }
+            if (a.piece == 1 && b.piece == 1) {
+               return (a.to % 8 > 2 && a.to % 8 < 5); // flank pawns last 
+            }
+            return (a.piece < b.piece && a.piece != 1);
+        });
+    }
+
+    std::vector<Move> legalMoves;
+
+    for (const auto move : pseudoMoves) {
+        if (isMoveLegal(move)) {
+            legalMoves.push_back(move);
         }
     }
 
@@ -256,6 +318,7 @@ std::vector<ChessLogic::Move> ChessLogic::getLegalMoves(bool isWhite) {
 }
 
 void ChessLogic::makeMove(const Move &move) {
+
     // Push the move onto the stack for undo functionality
     moveStack.push(move);
 
@@ -284,10 +347,13 @@ void ChessLogic::makeMove(const Move &move) {
     }
 
     // Update the internal board for normal moves
-    internalBoard[move.to] = internalBoard[move.from];
-    internalBoard[move.to].type = move.promotion ? move.promotion : internalBoard[move.from].type;
+    internalBoard[move.to] = internalBoard[move.from]; // Move the piece
+    if (move.promotion != 0) {
+        internalBoard[move.to].type = move.promotion; // Promote the pawn
+    }
     internalBoard[move.from] = {0, 0}; // Clear the starting square
 
+    castleStack.push(castleRights(whiteKCastle, whiteQCastle, blackKCastle, blackQCastle)); // record the previous castling rights
     // Update castling rights
     if (move.from == 60) { // White king moves
         whiteQCastle = false;
@@ -311,17 +377,15 @@ void ChessLogic::makeMove(const Move &move) {
     } else {
         enPassantSquare = -1; // Reset en passant square
     }
+
 }
 
 bool ChessLogic::isMoveLegal(const Move &move) {
-    if (!isMovePsuedoLegal(move)) {
-        return false; // Move is not pseudo-legal
-    }
     bool isLegal = true;
     // Temporarily make the move
     makeMove(move);
 
-    if (isInCheck(move.color)) {
+    if (isInCheck(move.color == 1)) {
         isLegal = false; // Move leaves the king in check
     }
 
@@ -334,7 +398,7 @@ bool ChessLogic::isMoveLegal(const Move &move) {
 
         // Check if the king passes through or lands on a square under attack
         for (short i = 0; i <= 2; ++i) { // Check up to 2 squares (including the destination)
-            if (isInCheck(move.color)) {
+            if (isInCheck(move.color == 1)) {
                 isLegal = false; // King passes through or lands on a square under attack
                 break;
             }
@@ -367,28 +431,27 @@ void ChessLogic::undoMove() {
     moveStack.pop();
 
     // Undo the move on the internal board
-    internalBoard[lastMove.from] = internalBoard[lastMove.to];
-    internalBoard[lastMove.from].type = lastMove.piece; // Restore the original piece type
+    internalBoard[lastMove.from] = chessPiece(lastMove.color, lastMove.piece);
     internalBoard[lastMove.to] = {0, 0}; // Clear the destination square
 
     // Handle captures
     if (lastMove.capture) {
-        internalBoard[lastMove.to] = {static_cast<short>(lastMove.capture), static_cast<short>(lastMove.color == 1 ? 2 : 1)};
+        internalBoard[lastMove.to] = chessPiece(lastMove.color == 1 ? 2 : 1, lastMove.capture);
     }
 
     // Handle castling
     if (lastMove.moveType == 1) { // Kingside castling
-        internalBoard[lastMove.to + 1] = internalBoard[lastMove.to - 1]; // Move rook back
+        internalBoard[lastMove.to + 1] = chessPiece(internalBoard[lastMove.to - 1].color, 4); // Move rook back
         internalBoard[lastMove.to - 1] = {0, 0}; // Clear rook's new square
     } else if (lastMove.moveType == 2) { // Queenside castling
-        internalBoard[lastMove.to - 2] = internalBoard[lastMove.to + 1]; // Move rook back
+        internalBoard[lastMove.to - 2] = chessPiece(internalBoard[lastMove.to + 1].color, 4); // Move rook back
         internalBoard[lastMove.to + 1] = {0, 0}; // Clear rook's new square
     }
 
     // Handle en passant
     if (lastMove.moveType == 3) { // En passant
         short capturedPawnSquare = (lastMove.color == 1) ? lastMove.to + 8 : lastMove.to - 8;
-        internalBoard[capturedPawnSquare] = {static_cast<short>(lastMove.capture), static_cast<short>(lastMove.color == 1 ? 2 : 1)};
+        internalBoard[capturedPawnSquare] = chessPiece(lastMove.color == 1 ? 2 :1, 1);
         internalBoard[lastMove.to] = {0, 0}; // Clear the en passant capture square
     }
 
@@ -398,20 +461,13 @@ void ChessLogic::undoMove() {
     }
 
     // Restore castling rights
-    if (lastMove.from == 60) { // White king moves
-        whiteQCastle = true;
-        whiteKCastle = true;
-    } else if (lastMove.from == 56) { // White queenside rook moves
-        whiteQCastle = true;
-    } else if (lastMove.from == 63) { // White kingside rook moves
-        whiteKCastle = true;
-    } else if (lastMove.from == 4) { // Black king moves
-        blackQCastle = true;
-        blackKCastle = true;
-    } else if (lastMove.from == 0) { // Black queenside rook moves
-        blackQCastle = true;
-    } else if (lastMove.from == 7) { // Black kingside rook moves
-        blackKCastle = true;
+    if (!castleStack.empty()) {
+        castleRights oldRights = castleStack.top();
+        castleStack.pop();
+        whiteKCastle = oldRights.wKingside;
+        whiteQCastle = oldRights.wQueenside;
+        blackKCastle = oldRights.bKingside;
+        blackQCastle = oldRights.bQueenside;
     }
 
     // Restore en passant square
@@ -426,6 +482,10 @@ void ChessLogic::undoMove() {
 void ChessLogic::emtpyMoveStack() {
     while (!moveStack.empty()) {
         moveStack.pop();
+    }
+    while (!castleStack.empty())
+    {
+        castleStack.pop();
     }
 }
 
@@ -453,8 +513,7 @@ ChessLogic::Move ChessLogic::translateMove(short fromSquare, short toSquare) con
         move.moveType = 3;
         move.capture = 1; // Pawn captured
     }
-
-    return move;
+    return Move(move);
 }
 
 ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
@@ -463,8 +522,8 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
         std::abort();
     }
 
-    short fromSquare = (moveStr[1] - '1') * 8 + (moveStr[0] - 'a');
-    short toSquare = (moveStr[3] - '1') * 8 + (moveStr[2] - 'a');
+    short fromSquare = stringToSquare(moveStr.substr(0,2));
+    short toSquare = stringToSquare(moveStr.substr(2,2));
 
     Move move = translateMove(fromSquare, toSquare);
 
@@ -486,6 +545,7 @@ ChessLogic::Move ChessLogic::translateMove(const std::string &moveStr) const {
 }
 
 std::string ChessLogic::translateMoveToString(const Move &move) const {
+
     // Check for a null move
     if (move.from == -1 && move.to == -1) {
         return "0000"; // Null move representation
@@ -493,13 +553,8 @@ std::string ChessLogic::translateMoveToString(const Move &move) const {
 
     std::string moveStr;
 
-    // Convert the 'from' square to algebraic notation
-    moveStr += static_cast<char>('a' + (move.from % 8)); // File
-    moveStr += static_cast<char>('1' + (move.from / 8)); // Rank
-
-    // Convert the 'to' square to algebraic notation
-    moveStr += static_cast<char>('a' + (move.to % 8)); // File
-    moveStr += static_cast<char>('1' + (move.to / 8)); // Rank
+    moveStr += squareToString(move.from); // Convert the 'from' square to algebraic notation
+    moveStr += squareToString(move.to);   // Convert the 'to' square to algebraic notation
 
     // Add promotion piece if applicable
     if (move.promotion != 0) {
@@ -518,11 +573,15 @@ const ChessLogic::chessPiece* ChessLogic::getChessBoard() const {
     return internalBoard;
 }
 
-bool ChessLogic::isInCheck(short color) const {
+bool ChessLogic::isInCheck(bool isWhite) const {
+
+    short color = isWhite ? 1 : 2;
+
     // Find the king's position
     short kingSquare = -1;
     for (short i = 0; i < 64; ++i) {
         if (internalBoard[i].type == 6 && internalBoard[i].color == color) {
+            
             kingSquare = i;
             break;
         }
@@ -575,7 +634,8 @@ bool ChessLogic::isInCheck(short color) const {
     const short rookDirections[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
     for (const auto &dir : rookDirections) {
         short targetSquare = kingSquare;
-        while ((targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1])) != -1) {
+        targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1]);
+        while (targetSquare != -1) {
             if (internalBoard[targetSquare].type != 0) {
                 if ((internalBoard[targetSquare].type == 4 || internalBoard[targetSquare].type == 5) &&
                     internalBoard[targetSquare].color == opponentColor) {
@@ -583,6 +643,7 @@ bool ChessLogic::isInCheck(short color) const {
                 }
                 break;
             }
+            targetSquare = getSqureXYrelative(targetSquare, dir[0], dir[1]);
         }
     }
 
@@ -598,7 +659,7 @@ bool ChessLogic::isInCheck(short color) const {
     return false; // No attacks found, king is not in check
 }
 
-std::vector<short> ChessLogic::bitboardToSquares(u_int64_t bitboard) const {
+std::vector<short> ChessLogic::bitboardToSquares(uint64_t bitboard) const {
     std::vector<short> squares;
     for (short i = 0; i < 64; ++i) {
         if (bitboard & (1ULL << i)) {
@@ -608,113 +669,133 @@ std::vector<short> ChessLogic::bitboardToSquares(u_int64_t bitboard) const {
     return squares;
 }
 
-u_int64_t ChessLogic::getPawnMoveBitBoard(short color) const {
-    u_int64_t pawnBitboard = getPieceBitBoard(color, 1); // Get bitboard for pawns
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getPawnMoveBitBoard(short color) const {
+    uint64_t pawnBitboard = getPieceBitBoard(color, 1); // Get bitboard for pawns
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t singlePush = 0;
-    u_int64_t doublePush = 0;
-    u_int64_t capturesLeft = 0;
-    u_int64_t capturesRight = 0;
+    uint64_t singlePush = 0;
+    uint64_t doublePush = 0;
+    uint64_t capturesLeft = 0;
+    uint64_t capturesRight = 0;
 
     if (color == 1) { // White pawns
-        singlePush = (pawnBitboard << 8) & emptySquares; // Move one square forward
-        doublePush = ((singlePush & 0x0000000000FF0000) << 8) & emptySquares; // Move two squares forward from rank 2
-        capturesLeft = (pawnBitboard << 7) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
-        capturesRight = (pawnBitboard << 9) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
-    } else { // Black pawns
         singlePush = (pawnBitboard >> 8) & emptySquares; // Move one square forward
-        doublePush = ((singlePush & 0x0000FF0000000000) >> 8) & emptySquares; // Move two squares forward from rank 7
-        capturesLeft = (pawnBitboard >> 9) & opponentBitboard & ~0x0101010101010101; // Diagonal left capture
-        capturesRight = (pawnBitboard >> 7) & opponentBitboard & ~0x8080808080808080; // Diagonal right capture
+        doublePush = ((singlePush & 0x0000FF0000000000) >> 8) & emptySquares; // Move two squares forward from rank 2
+        capturesLeft = (pawnBitboard >> 9) & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard >> 7) & ~0x8080808080808080; // Diagonal right capture
+        
+    } else { // Black pawns
+        singlePush = (pawnBitboard << 8) & emptySquares; // Move one square forward
+        doublePush = ((singlePush & 0x0000000000FF0000) << 8) & emptySquares; // Move two squares forward from rank 7
+        capturesLeft = (pawnBitboard << 7) & ~0x0101010101010101; // Diagonal left capture
+        capturesRight = (pawnBitboard << 9) & ~0x8080808080808080; // Diagonal right capture
     }
 
     // Combine all possible moves
     return singlePush | doublePush | capturesLeft | capturesRight;
 }
 
-u_int64_t ChessLogic::getKnightMoveBitBoard(short color) const {
-    u_int64_t knightBitboard = getPieceBitBoard(color, 2); // Get bitboard for knights
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getKnightMoveBitBoard(short color) const {
+    uint64_t knightBitboard = getPieceBitBoard(color, 2); // Get bitboard for knights
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t knightMoves = 0;
+    uint64_t knightMoves = 0;
     const short knightOffsets[8] = {-17, -15, -10, -6, 6, 10, 15, 17};
 
-    for (short i = 0; i < 64; ++i) {
+    for (short i = 63; i >= 0; i--) {
+
         if (knightBitboard & (1ULL << i)) {
+
             for (short j = 0; j < 8; ++j) {
                 short targetSquare = i + knightOffsets[j];
                 if (targetSquare >= 0 && targetSquare < 64) {
-                    if ((knightOffsets[j] == -17 && (i % 8 != 7)) || 
-                        (knightOffsets[j] == -15 && (i % 8 != 0)) || 
-                        (knightOffsets[j] == -10 && (i % 8 != 6)) || 
-                        (knightOffsets[j] == -6 && (i % 8 != 1)) || 
-                        (knightOffsets[j] == 6 && (i % 8 != 7)) || 
-                        (knightOffsets[j] == 10 && (i % 8 != 0)) || 
-                        (knightOffsets[j] == 15 && (i % 8 != 6)) || 
-                        (knightOffsets[j] == 17 && (i % 8 != 1))) {
-                        continue; // Skip invalid moves
+                    if ((knightOffsets[j] == -10 && (i % 8 <= 1)) // queenside check
+                        || (knightOffsets[j] == 6 && (i % 8 <= 1))
+                        || (knightOffsets[j] == -17 && (i % 8 == 0))
+                        || (knightOffsets[j] == 15 && (i % 8 == 0))
+                        || (knightOffsets[j] == -6 && (i % 8 >= 6)) // kingside check
+                        || (knightOffsets[j] == 10 && (i % 8 >= 6)) 
+                        || (knightOffsets[j] == 17 && (i % 8 == 7)) 
+                        || (knightOffsets[j] == -15 && (i % 8 == 7))) {
+                            continue; // Skip invalid moves
                     }
                     knightMoves |= (1ULL << targetSquare);
                 }
             }
+            
         }
     }
 
-    return knightMoves & emptySquares | opponentBitboard;
+    return knightMoves | opponentBitboard;
 }
-u_int64_t ChessLogic::getBishopMoveBitBoard(short color) const {
-    u_int64_t bishopBitboard = getPieceBitBoard(color, 3); // Get bitboard for bishops
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getBishopMoveBitBoard(short color) const {
+    uint64_t bishopBitboard = getPieceBitBoard(color, 3) | getPieceBitBoard(color, 5); // Get bitboard for bishops and queens
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t bishopMoves = 0;
-    const short bishopOffsets[4][2] = {{-9, -7}, {7, -9}, {9, 7}, {-7, 9}};
+    uint64_t bishopMoves = 0;
+    const short bishopOffsets[4] = {-9, -7, 7, 9}; // Diagonal moves};
 
-    for (short i = 0; i < 64; ++i) {
-        if (bishopBitboard & (1ULL << i)) {
+    for (short i = 63; i >= 0; i--) {
+        if (bishopBitboard & (1ULL << i)) { // if bishop is on the square
             for (short j = 0; j < 4; ++j) {
-                short targetSquare = i;
-                while ((targetSquare += bishopOffsets[j][0]) >= 0 && targetSquare < 64) {
-                    if ((bishopOffsets[j][0] == -9 && (i % 8 != 7)) || 
-                        (bishopOffsets[j][0] == -7 && (i % 8 != 0)) || 
-                        (bishopOffsets[j][0] == 7 && (i % 8 != 0)) || 
-                        (bishopOffsets[j][0] == 9 && (i % 8 != 7))) {
+                short targetSquare = i + bishopOffsets[j];
+                while (targetSquare >= 0 && targetSquare < 64) {
+                    if ((bishopOffsets[j] == -9 && (i % 8 == 0))
+                        || (bishopOffsets[j] == -7 && (i % 8 == 7))
+                        || (bishopOffsets[j] == 7 && (i % 8 == 0))
+                        || (bishopOffsets[j] == 9 && (i % 8 == 7))
+                    ) {
+                        
                         break; // Skip invalid moves
                     }
                     bishopMoves |= (1ULL << targetSquare);
+                    if ((bishopOffsets[j] == -9 && (targetSquare % 8 == 0))
+                        || (bishopOffsets[j] == -7 && (targetSquare % 8 == 7))
+                        || (bishopOffsets[j] == 7 && (targetSquare % 8 == 0))
+                        || (bishopOffsets[j] == 9 && (targetSquare % 8 == 7))
+                    ) {
+                        // reached a corner
+                        
+                        break; // Skip invalid moves
+                    }
+                    targetSquare = targetSquare + bishopOffsets[j];
                     if (internalBoard[targetSquare].type != 0) {
                         break; // Stop at the first piece encountered
                     }
+                    
                 }
             }
         }
     }
 
-    return bishopMoves & emptySquares | opponentBitboard;
+    return (bishopMoves & emptySquares) | opponentBitboard;
 }
-u_int64_t ChessLogic::getRookMoveBitBoard(short color) const {
-    u_int64_t rookBitboard = getPieceBitBoard(color, 4); // Get bitboard for rooks
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getRookMoveBitBoard(short color) const {
+    uint64_t rookBitboard = getPieceBitBoard(color, 4) | getPieceBitBoard(color, 5); // Get bitboard for rooks and queens
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t rookMoves = 0;
-    const short rookOffsets[4][2] = {{-8, 0}, {8, 0}, {0, -1}, {0, 1}};
+    uint64_t rookMoves = 0;
+    const short rookOffsets[4] = {-8, 8, -1, 1}; // Straight line moves
 
     for (short i = 0; i < 64; ++i) {
         if (rookBitboard & (1ULL << i)) {
             for (short j = 0; j < 4; ++j) {
-                short targetSquare = i;
-                while ((targetSquare += rookOffsets[j][0]) >= 0 && targetSquare < 64) {
-                    if ((rookOffsets[j][0] == -8 && (i % 8 != 7)) || 
-                        (rookOffsets[j][0] == 8 && (i % 8 != 0)) || 
-                        (rookOffsets[j][0] == -1 && (i / 8 != 7)) || 
-                        (rookOffsets[j][0] == 1 && (i / 8 != 0))) {
+                short targetSquare = i + rookOffsets[j];
+                while (targetSquare >= 0 && targetSquare < 64) {
+                    if ((rookOffsets[j] == -1 && (i % 8 == 0))
+                        || (rookOffsets[j] == 1 && (i % 8 == 7))) {
                         break; // Skip invalid moves
                     }
                     rookMoves |= (1ULL << targetSquare);
+                    if ((rookOffsets[j] == -1 && (targetSquare % 8 == 0))
+                        || (rookOffsets[j] == 1 && (targetSquare % 8 == 7))) {
+                        break; // Skip invalid moves
+                    }
+                    targetSquare = targetSquare + rookOffsets[j];
                     if (internalBoard[targetSquare].type != 0) {
                         break; // Stop at the first piece encountered
                     }
@@ -723,34 +804,35 @@ u_int64_t ChessLogic::getRookMoveBitBoard(short color) const {
         }
     }
 
-    return rookMoves & emptySquares | opponentBitboard;
+    return (rookMoves & emptySquares) | opponentBitboard;
 }
 
-u_int64_t ChessLogic::getQueenMoveBitBoard(short color) const {
-    u_int64_t queenBitboard = getPieceBitBoard(color, 5); // Get bitboard for queens
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+// method not needed
+uint64_t ChessLogic::getQueenMoveBitBoard(short color) const {
+    uint64_t queenBitboard = getPieceBitBoard(color, 5); // Get bitboard for queens
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    return (getBishopMoveBitBoard(color) | getRookMoveBitBoard(color)) & emptySquares | opponentBitboard;
+    uint64_t queenMoves = (getBishopMoveBitBoard(color) | getRookMoveBitBoard(color)) & emptySquares;
+
+    return (getBishopMoveBitBoard(color) | getRookMoveBitBoard(color)) | opponentBitboard;
 }
 
-u_int64_t ChessLogic::getKingMoveBitBoard(short color) const {
-    u_int64_t kingBitboard = getPieceBitBoard(color, 6); // Get bitboard for kings
-    u_int64_t emptySquares = ~getPieceBitBoard(1) & ~getPieceBitBoard(2); // Empty squares
-    u_int64_t opponentBitboard = getPieceBitBoard(color == 1 ? 2 : 1); // Opponent pieces
+uint64_t ChessLogic::getKingMoveBitBoard(short color) const {
+    uint64_t kingBitboard = getPieceBitBoard(color, 6); // Get bitboard for kings
+    uint64_t emptySquares = ~getColorBitBoard(1) & ~getColorBitBoard(2); // Empty squares
+    uint64_t opponentBitboard = getColorBitBoard(color == 1 ? 2 : 1); // Opponent pieces
 
-    u_int64_t kingMoves = 0;
-    const short kingOffsets[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+    uint64_t kingMoves = 0;
+    const short kingOffsets[8][2] = {{-1, -8}, {0, -8}, {1, -8}, {-1, 0}, {1, 0}, {-1, 8}, {0, 8}, {1, 8}};
 
-    for (short i = 0; i < 64; ++i) {
+    for (short i = 63; i >= 0; i--) {
         if (kingBitboard & (1ULL << i)) {
             for (short j = 0; j < 8; ++j) {
-                short targetSquare = i + kingOffsets[j][0] * 8 + kingOffsets[j][1];
+                short targetSquare = i + kingOffsets[j][0] + kingOffsets[j][1];
                 if (targetSquare >= 0 && targetSquare < 64) {
-                    if ((kingOffsets[j][0] == -1 && (i % 8 != 7)) || 
-                        (kingOffsets[j][0] == 1 && (i % 8 != 0)) || 
-                        (kingOffsets[j][1] == -1 && (i / 8 != 7)) || 
-                        (kingOffsets[j][1] == 1 && (i / 8 != 0))) {
+                    if ((kingOffsets[j][0] == -1 && (i % 8 == 0)) || 
+                        (kingOffsets[j][0] == 1 && (i % 8 == 7))) {
                         continue; // Skip invalid moves
                     }
                     kingMoves |= (1ULL << targetSquare);
@@ -759,5 +841,161 @@ u_int64_t ChessLogic::getKingMoveBitBoard(short color) const {
         }
     }
 
-    return kingMoves & emptySquares | opponentBitboard;
+    return (kingMoves & emptySquares) | opponentBitboard;
+}
+
+void ChessLogic::initializeZobrist() {
+    std::mt19937_64 rng(123456); // Random number generator with a fixed seed
+    std::uniform_int_distribution<uint64_t> dist;
+
+    // Initialize Zobrist table for pieces on squares
+    for (int square = 0; square < 64; ++square) {
+        for (int piece = 0; piece < 12; ++piece) { // 6 piece types * 2 colors
+            zobristTable[square][piece] = dist(rng);
+        }
+    }
+
+    // Initialize Zobrist values for castling rights
+    for (int i = 0; i < 4; ++i) {
+        zobristCastling[i] = dist(rng);
+    }
+
+    // Initialize Zobrist values for en passant files
+    for (int i = 0; i < 8; ++i) {
+        zobristEnPassant[i] = dist(rng);
+    }
+
+    // Initialize Zobrist value for the player's turn
+    zobristTurn = dist(rng);
+}
+
+uint64_t ChessLogic::hashPosition(bool isWhiteTurn) const {
+    uint64_t hash = 0;
+
+    // Hash the pieces on the board
+    for (int square = 0; square < 64; ++square) {
+        const chessPiece &piece = internalBoard[square];
+        if (piece.type != 0) { // If the square is not empty
+            int pieceIndex = (piece.type - 1) + (piece.color - 1) * 6; // Map to 0-11
+            hash ^= zobristTable[square][pieceIndex];
+        }
+    }
+
+    // Hash castling rights
+    if (whiteKCastle) hash ^= zobristCastling[0];
+    if (whiteQCastle) hash ^= zobristCastling[1];
+    if (blackKCastle) hash ^= zobristCastling[2];
+    if (blackQCastle) hash ^= zobristCastling[3];
+
+    // Hash en passant square
+    if (enPassantSquare != -1) {
+        int file = enPassantSquare % 8; // Get the file of the en passant square
+        hash ^= zobristEnPassant[file];
+    }
+
+    // Hash the player's turn
+    if (isWhiteTurn) {
+        hash ^= zobristTurn;
+    }
+
+    return hash;
+}
+
+std::vector<ChessLogic::Move> ChessLogic::getMoveHistory() const {
+    std::vector<Move> moveHistory;
+    std::stack<Move> tempStack = moveStack;
+
+    while (!tempStack.empty()) {
+        moveHistory.push_back(tempStack.top());
+        tempStack.pop();
+    }
+    std::reverse(moveHistory.begin(), moveHistory.end());
+    return moveHistory;
+}
+
+std::string ChessLogic::printBitBoard(uint64_t bitboard) const {
+    std::string bitboardString = std::bitset<64>(bitboard).to_string();
+    std::string formattedString = "\n";
+    for (int i = 64; i > 0; i--) {
+        formattedString += bitboardString[i-1];
+        if ((i - 1) % 8 == 0) {
+            formattedString += "\n";
+        }
+    }
+    return formattedString;
+}
+
+std::string ChessLogic::printBoard() const {
+    std::string formattedString = "\n";
+    const char pieceRef[] = {'0', 'p', 'n', 'b', 'r', 'q', 'k'};
+
+    for (int i = 0; i < 64; ++i) {
+        if (internalBoard[i].type == 0) {
+            formattedString += ".";
+        } else {
+            
+            // formattedString += std::to_string(internalBoard[i].type);
+            if (internalBoard[i].color ==1) {
+                formattedString += toupper(pieceRef[internalBoard[i].type]);
+            } else {
+                formattedString += pieceRef[internalBoard[i].type];
+            }
+        }
+        formattedString += " ";
+        if ((i + 1) % 8 == 0) {
+            formattedString += "\n";
+        }
+    }
+    return formattedString;
+    
+}
+
+std::string ChessLogic::squareToString(short square) const {
+    if (square < 0 || square >= 64) {
+        return "Invalid square";
+    }
+    char file = 'a' + (square % 8);
+    char rank = '8' - (square / 8);
+    return std::string(1, file) + std::string(1, rank);
+}
+
+std::string ChessLogic::printLegalMoves(std::vector<ChessLogic::Move> moves) const {
+    std::string formattedString = "\nLegal Moves:\n";
+    for (const auto &move : moves) {
+        formattedString += translateMoveToString(move) + ", ";
+    }
+    if (!moves.empty()) {
+        formattedString = formattedString.substr(0, formattedString.length() - 2); // Remove trailing comma and space
+    }
+    std::cout << formattedString << std::endl;
+    return formattedString;
+}
+
+short ChessLogic::stringToSquare(const std::string &squareStr) const {
+    if (squareStr.length() != 2) {
+        std::cerr << "Error: Invalid square string provided to stringToSquare." << std::endl;
+        std::abort();
+    }
+    char file = squareStr[0];
+    char rank = squareStr[1];
+
+    if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+        std::cerr << "Error: Invalid square string provided to stringToSquare." << std::endl;
+        std::abort();
+    }
+    short square = (('1' - rank) + 7 ) * 8 + (file - 'a');
+    return square;
+}
+
+std::string ChessLogic::printMoves(std::vector<Move> moves) const {
+    std::string moveString;
+    for (Move move : moves) {
+        moveString += move.color == 1 ? "w: " : "b:";
+        moveString += translateMoveToString(move) + ", ";
+    }
+    if (moveString.length() > 2) {
+        moveString.pop_back();
+        moveString.pop_back();
+    }
+    return moveString;
 }

@@ -20,14 +20,16 @@ bool PositionEvalStrategy::isEndgame(const ChessLogic::chessPiece* board) {
     return (majorPieces <= 2 && minorPieces <= 2);
 }
 
-int PositionEvalStrategy::evaluate(const ChessLogic::chessPiece* board) {
+int PositionEvalStrategy::evaluate(const ChessLogic * chessBoard, bool whitesTurn) {
     int positionScore = 0;
-    bool endgame = isEndgame(board); // Placeholder for endgame condition
+    bool endgame = isEndgame(chessBoard->getChessBoard()); // Placeholder for endgame condition
+    const auto *board = chessBoard->getChessBoard();
 
     for (int i = 0; i < 64; ++i) {
         const auto &piece = board[i];
-        if (piece.type == 0) continue; // Skip empty squares
-
+        if (piece.type == 0) {
+            continue; // Skip empty squares
+        }
         switch (piece.type) {
             case 1: // Pawn
                 if (endgame) {
